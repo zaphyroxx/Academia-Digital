@@ -1,0 +1,8 @@
+{
+  "name": "academia-digital",
+  "version": "1.0.0",
+  "description": "Sistema de contabilidad digital",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.9.0"
+  }
+}
