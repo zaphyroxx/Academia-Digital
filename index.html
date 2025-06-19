@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Contabilidad Digital v3.0 - Dashboard Avanzado</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-button.active { background-color: #3B82F6; color: white; }
+        .chart-container { height: 400px; }
+        .date-range-dropdown { display: none; position: absolute; z-index: 50; }
+        .date-range-dropdown.active { display: block; }
+        .sync-indicator { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            z-index: 100;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        .sync-success { background-color: #10B981; color: white; }
+        .sync-error { background-color: #EF4444; color: white; }
+        .sync-syncing { background-color: #F59E0B; color: white; }
+         {
+            body { -webkit-print-color-adjust: exact; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Indicador de sincronización -->
+    <div id="sync-indicator" class="sync-indicator" style="display: none;">
+        <i class="fas fa-sync-alt mr-2"></i>
+        <span id="sync-text">Sincronizando...</span>
+    </div>
+
+    <div class="container mx-auto px-4 py-6">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                        <i class="fas fa-chart-line text-blue-600 mr-3"></i>
+                        Sistema de Contabilidad Digital v3.0
+                    </h1>
+                    <p class="text-gray-600">Gestión completa para productos digitales - WhatsApp & Meta Ads</p>
+                </div>
+                <div class="text-right">
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ID de Sincronización</label>
+                        <div class="flex">
+                            <input type="text" id="sync-id" placeholder="Ingresa tu ID único" class="px-3 py-2 border border-gray-300 rounded-l-md text-sm w-48">
+                            <button onclick="conectarSincronizacion()" class="bg-blue-600 text-white px-4 py-2 rounded-r-md hover:bg-blue-700 text-sm">
+                                <i class="fas fa-cloud mr-2"></i>Conectar
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Usa el mismo ID en todos tus dispositivos
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="bg-white rounded-lg shadow-md mb-6">
+            <div class="flex flex-wrap border-b">
+                <button class="tab-button px-6 py-3 font-medium text-gray-600 hover:text-blue-600 active" onclick="showTab('dashboard')">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                </button>
+                <button class="tab-button px-6 py-3 font-medium text-gray-600 hover:text-blue-600" onclick="showTab('productos')">
+                    <i class="fas fa-box mr-2"></i>Productos
+                </button>
+                <button class="tab-button px-6 py-3 font-medium text-gray-600 hover:text-blue-600" onclick="showTab('metodos-pago')">
+                    <i class="fas fa-credit-card mr-2"></i>Métodos de Pago
+                </button>
+                <button class="tab-button px-6 py-3 font-medium text-gray-600 hover:text-blue-600" onclick="showTab('ventas')">
+                    <i class="fas fa-shopping-cart mr-2"></i>Ventas
+                </button>
+                <button class="tab-button px-6 py-3 font-medium text-gray-600 hover:text-blue-600" onclick="showTab('gastos-meta')">
+                    <i class="fas fa-ad mr-2"></i>Gastos Meta
+                </button>
+                <button class="tab-button px-6 py-3 font-medium text-gray-600 hover:text-blue-600" onclick="showTab('reportes')">
+                    <i class="fas fa-file-alt mr-2"></i>Reportes
+                </button>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Dashboard Principal</h2>
+                    
+                    <!-- Selector de Rango de Fechas -->
+                    <div class="relative">
+                        <button id="date-range-button" onclick="toggleDateRangeDropdown()" class="bg-white border border-gray-300 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center">
+                            <i class="fas fa-calendar-alt mr-2"></i>
+                            <span id="selected-range-text">Últimos 7 días</span>
+                            <i class="fas fa-chevron-down ml-2"></i>
+                        </button>
+                        
+                        <div id="date-range-dropdown" class="date-range-dropdown absolute right-0 mt-2 w-64 bg-white border border-gray-300 rounded-md shadow-lg">
+                            <div class="py-1">
+                                <button onclick="selectDateRange('today')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Hoy</button>
+                                <button onclick="selectDateRange('yesterday')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Ayer</button>
+                                <button onclick="selectDateRange('last7days')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-blue-50">Últimos 7 días</button>
+                                <button onclick="selectDateRange('last14days')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Últimos 14 días</button>
+                                <button onclick="selectDateRange('last28days')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Últimos 28 días</button>
+                                <button onclick="selectDateRange('last30days')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Últimos 30 días</button>
+                                <hr class="my-1">
+                                <button onclick="selectDateRange('thisweek')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Esta semana</button>
+                                <button onclick="selectDateRange('lastweek')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">La semana pasada</button>
+                                <button onclick="selectDateRange('thismonth')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Este mes</button>
+                                <button onclick="selectDateRange('lastmonth')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">El mes pasado</button>
+                                <button onclick="selectDateRange('maximum')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Máximo</button>
+                                <hr class="my-1">
+                                <button onclick="selectDateRange('custom')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Personalizado</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Date Range Modal -->
+                <div id="custom-date-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+                    <div class="flex items-center justify-center min-h-screen">
+                        <div class="bg-white rounded-lg p-6 w-96">
+                            <h3 class="text-lg font-semibold mb-4">Seleccionar Rango Personalizado</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Inicio</label>
+                                    <input type="date" id="custom-start-date" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Fin</label>
+                                    <input type="date" id="custom-end-date" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                </div>
+                                <div class="flex justify-end space-x-3">
+                                    <button onclick="closeCustomDateModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
+                                    <button onclick="applyCustomDateRange()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Aplicar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-gradient-to-r from-green-400 to-green-600 p-6 rounded-lg text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold">Ingresos Totales</h3>
+                                <p class="text-2xl font-bold" id="total-ingresos">$0</p>
+                            </div>
+                            <i class="fas fa-dollar-sign text-3xl opacity-80"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-red-400 to-red-600 p-6 rounded-lg text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold">Gastos Totales</h3>
+                                <p class="text-2xl font-bold" id="total-gastos">$0</p>
+                            </div>
+                            <i class="fas fa-credit-card text-3xl opacity-80"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-blue-400 to-blue-600 p-6 rounded-lg text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold">Ganancia Neta</h3>
+                                <p class="text-2xl font-bold" id="ganancia-neta">$0</p>
+                            </div>
+                            <i class="fas fa-chart-line text-3xl opacity-80"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-purple-400 to-purple-600 p-6 rounded-lg text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold">ROI</h3>
+                                <p class="text-2xl font-bold" id="roi-percentage">0%</p>
+                            </div>
+                            <i class="fas fa-percentage text-3xl opacity-80"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-4">Ventas vs Gastos</h3>
+                        <div class="chart-container">
+                            <canvas id="chartVentasGastos"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-4">Productos Más Vendidos</h3>
+                        <div class="chart-container">
+                            <canvas id="chartProductos"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold mb-4">Actividad Reciente</h3>
+                    <div id="actividad-reciente" class="space-y-3">
+                        <p class="text-gray-500">No hay actividad reciente</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productos Tab -->
+            <div id="productos" class="tab-content p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Gestión de Productos</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Formulario para agregar producto -->
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-4">Agregar/Editar Producto</h3>
+                        <form id="producto-form">
+                            <input type="hidden" id="producto-id">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Producto</label>
+                                <input type="text" id="producto-nombre" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Precio (COP)</label>
+                                <input type="number" id="producto-precio" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                                    <i class="fas fa-save mr-2"></i>Guardar
+                                </button>
+                                <button type="button" onclick="cancelarEdicionProducto()" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+                                    <i class="fas fa-times mr-2"></i>Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Lista de productos -->
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="p-6">
+                            <h3 class="text-lg font-semibold mb-4">Productos Registrados</h3>
+                            <div id="productos-lista" class="space-y-3">
+                                <!-- Los productos se cargarán aquí -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Métodos de Pago Tab -->
+            <div id="metodos-pago" class="tab-content p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Métodos de Pago</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Formulario para agregar método de pago -->
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-4">Agregar/Editar Método de Pago</h3>
+                        <form id="metodo-pago-form">
+                            <input type="hidden" id="metodo-id">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Método</label>
+                                <input type="text" id="metodo-nombre" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                                    <i class="fas fa-save mr-2"></i>Guardar
+                                </button>
+                                <button type="button" onclick="cancelarEdicionMetodo()" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+                                    <i class="fas fa-times mr-2"></i>Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Lista de métodos de pago -->
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="p-6">
+                            <h3 class="text-lg font-semibold mb-4">Métodos Registrados</h3>
+                            <div id="metodos-lista" class="space-y-3">
+                                <!-- Los métodos se cargarán aquí -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ventas Tab -->
+            <div id="ventas" class="tab-content p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Registro de Ventas</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Formulario de venta -->
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-4">Nueva Venta</h3>
+                        <form id="venta-form">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Producto</label>
+                                <select id="venta-producto" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="">Seleccionar producto</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Precio (COP)</label>
+                                <input type="number" id="venta-precio" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Método de Pago</label>
+                                <select id="venta-metodo-pago" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="">Seleccionar método</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha</label>
+                                <input type="date" id="venta-fecha" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Notas (opcional)</label>
+                                <textarea id="venta-notas" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
+                                <i class="fas fa-plus mr-2"></i>Registrar Venta
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Resumen de ventas -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-4">Resumen del Día</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span>Ventas Hoy:</span>
+                                <span id="ventas-hoy" class="font-semibold">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Ingresos Hoy:</span>
+                                <span id="ingresos-hoy" class="font-semibold">$0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Ventas Esta Semana:</span>
+                                <span id="ventas-semana" class="font-semibold">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Ingresos Esta Semana:</span>
+                                <span id="ingresos-semana" class="font-semibold">$0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Historial de ventas -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold mb-4">Historial de Ventas</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full table-auto">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Método Pago</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ventas-tabla" class="bg-white divide-y divide-gray-200">
+                                    <!-- Las ventas se cargarán aquí -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gastos Meta Tab -->
+            <div id="gastos-meta" class="tab-content p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Gastos Meta Ads</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Formulario de gastos -->
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-4">Registrar Gasto Meta</h3>
+                        <form id="gasto-meta-form">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nombre de la Campaña</label>
+                                <input type="text" id="gasto-campana" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Inicio</label>
+                                <input type="date" id="gasto-fecha-inicio" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Fin</label>
+                                <input type="date" id="gasto-fecha-fin" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Monto Total (COP)</label>
+                                <input type="number" id="gasto-monto" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                                <textarea id="gasto-descripcion" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700">
+                                <i class="fas fa-plus mr-2"></i>Registrar Gasto
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Resumen de gastos -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-4">Resumen de Gastos</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span>Gasto Hoy:</span>
+                                <span id="gasto-hoy" class="font-semibold text-red-600">$0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Gasto Esta Semana:</span>
+                                <span id="gasto-semana" class="font-semibold text-red-600">$0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Gasto Este Mes:</span>
+                                <span id="gasto-mes" class="font-semibold text-red-600">$0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Total de Gastos:</span>
+                                <span id="gasto-total" class="font-semibold text-red-600">$0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Historial de gastos -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold mb-4">Historial de Gastos Meta</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full table-auto">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Campaña</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Inicio</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Fin</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="gastos-tabla" class="bg-white divide-y divide-gray-200">
+                                    <!-- Los gastos se cargarán aquí -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reportes Tab -->
+            <div id="reportes" class="tab-content p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Reportes y Análisis</h2>
+                
+                <!-- Filtros de reporte -->
+                <div class="bg-gray-50 p-6 rounded-lg mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Filtros de Reporte</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio</label>
+                            <input type="date" id="reporte-fecha-inicio" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Fin</label>
+                            <input type="date" id="reporte-fecha-fin" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="generarReporte()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
+                                <i class="fas fa-chart-bar mr-2"></i>Generar Reporte
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Análisis de ROI -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-4">Análisis de ROI</h3>
+                        <div class="chart-container">
+                            <canvas id="chartROI"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-4">Reporte de Ingresos</h3>
+                        <div class="chart-container">
+                            <canvas id="chartIngresos"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tabla de reporte detallado -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold mb-4">Reporte Detallado</h3>
+                        <div id="reporte-detallado" class="overflow-x-auto">
+                            <p class="text-gray-500">Selecciona un rango de fechas y genera el reporte</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let productos = JSON.parse(localStorage.getItem('productos')) || [
+            {id: 1, nombre: 'Curso Crianza Consciente', precio: 97000},
+            {id: 2, nombre: 'Curso Finanzas Diarias', precio: 67000}
+        ];
+        
+        let metodosPago = JSON.parse(localStorage.getItem('metodosPago')) || [
+            {id: 1, nombre: 'Transferencia Bancaria'},
+            {id: 2, nombre: 'PayPal'},
+            {id: 3, nombre: 'Nequi'},
+            {id: 4, nombre: 'Daviplata'}
+        ];
+        
+        let ventas = JSON.parse(localStorage.getItem('ventas')) || [];
+        let gastosMeta = JSON.parse(localStorage.getItem('gastosMeta')) || [];
+        
+        let charts = {};
+        let currentDateRange = 'last7days';
+        let currentDateRangeData = {};
+        let syncId = localStorage.getItem('syncId') || '';
+
+        // Función para formatear moneda colombiana
+        function formatearPesos(cantidad) {
+            return '$' + cantidad.toLocaleString('es-CO');
+        }
+
+        // Función para guardar datos
+        function guardarDatos() {
+            localStorage.setItem('productos', JSON.stringify(productos));
+            localStorage.setItem('metodosPago', JSON.stringify(metodosPago));
+            localStorage.setItem('ventas', JSON.stringify(ventas));
+            localStorage.setItem('gastosMeta', JSON.stringify(gastosMeta));
+            
+            // Sincronizar con la nube si hay ID
+            if (syncId) {
+                sincronizarConNube();
+            }
+        }
+
+        // Sistema de sincronización en la nube
+        function conectarSincronizacion() {
+            const inputId = document.getElementById('sync-id').value.trim();
+            if (!inputId) {
+                alert('Por favor ingresa un ID único para sincronizar');
+                return;
+            }
+            
+            syncId = inputId;
+            localStorage.setItem('syncId', syncId);
+            document.getElementById('sync-id').value = syncId;
+            
+            // Cargar datos de la nube
+            cargarDatosDeNube();
+        }
+
+        function mostrarEstadoSync(estado, mensaje) {
+            const indicator = document.getElementById('sync-indicator');
+            const text = document.getElementById('sync-text');
+            
+            indicator.className = `sync-indicator sync-${estado}`;
+            text.textContent = mensaje;
+            indicator.style.display = 'block';
+            
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 3000);
+        }
+
+        function sincronizarConNube() {
+            if (!syncId) return;
+            
+            try {
+                const datos = {
+                    productos,
+                    metodosPago,
+                    ventas,
+                    gastosMeta,
+                    timestamp: Date.now()
+                };
+                
+                localStorage.setItem(`cloud_${syncId}`, JSON.stringify(datos));
+                mostrarEstadoSync('success', 'Datos sincronizados correctamente');
+            } catch (error) {
+                mostrarEstadoSync('error', 'Error al sincronizar datos');
+            }
+        }
+
+        function cargarDatosDeNube() {
+            if (!syncId) return;
+            
+            try {
+                mostrarEstadoSync('syncing', 'Cargando datos...');
+                
+                const datosNube = localStorage.getItem(`cloud_${syncId}`);
+                if (datosNube) {
+                    const datos = JSON.parse(datosNube);
+                    
+                    productos = datos.productos || productos;
+                    metodosPago = datos.metodosPago || metodosPago;
+                    ventas = datos.ventas || ventas;
+                    gastosMeta = datos.gastosMeta || gastosMeta;
+                    
+                    guardarDatos();
+                    
+                    // Recargar todas las vistas
+                    cargarProductos();
+                    cargarMetodosPago();
+                    cargarSelectProductos();
+                    cargarSelectMetodosPago();
+                    cargarVentas();
+                    cargarGastosMeta();
+                    actualizarResumenVentas();
+                    actualizarResumenGastos();
+                    actualizarDashboard();
+                    
+                    mostrarEstadoSync('success', 'Datos cargados correctamente');
+                } else {
+                    mostrarEstadoSync('success', 'ID conectado, sincronización activa');
+                }
+            } catch (error) {
+                mostrarEstadoSync('error', 'Error al cargar datos');
+            }
+        }
+
+        // Funciones del selector de rango de fechas
+        function toggleDateRangeDropdown() {
+            const dropdown = document.getElementById('date-range-dropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        function selectDateRange(range) {
+            currentDateRange = range;
+            updateDateRangeData(range);
+            toggleDateRangeDropdown();
+            
+            // Actualizar dashboard con el nuevo rango
+            actualizarDashboard();
+        }
+
+        function updateDateRangeData(range) {
+            const today = new Date();
+            let startDate, endDate, label;
+            
+            switch(range) {
+                case 'today':
+                    startDate = endDate = new Date(today);
+                    label = 'Hoy';
+                    break;
+                case 'yesterday':
+                    startDate = endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+                    label = 'Ayer';
+                    break;
+                case 'last7days':
+                    startDate = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
+                    endDate = new Date(today);
+                    label = 'Últimos 7 días';
+                    break;
+                case 'last14days':
+                    startDate = new Date(today.getTime() - 13 * 24 * 60 * 60 * 1000);
+                    endDate = new Date(today);
+                    label = 'Últimos 14 días';
+                    break;
+                case 'last28days':
+                    startDate = new Date(today.getTime() - 27 * 24 * 60 * 60 * 1000);
+                    endDate = new Date(today);
+                    label = 'Últimos 28 días';
+                    break;
+                case 'last30days':
+                    startDate = new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000);
+                    endDate = new Date(today);
+                    label = 'Últimos 30 días';
+                    break;
+                case 'thisweek':
+                    const startOfWeek = new Date(today);
+                    startOfWeek.setDate(today.getDate() - today.getDay());
+                    startDate = startOfWeek;
+                    endDate = new Date(today);
+                    label = 'Esta semana';
+                    break;
+                case 'lastweek':
+                    const lastWeekStart = new Date(today);
+                    lastWeekStart.setDate(today.getDate() - today.getDay() - 7);
+                    const lastWeekEnd = new Date(lastWeekStart);
+                    lastWeekEnd.setDate(lastWeekStart.getDate() + 6);
+                    startDate = lastWeekStart;
+                    endDate = lastWeekEnd;
+                    label = 'La semana pasada';
+                    break;
+                case 'thismonth':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    endDate = new Date(today);
+                    label = 'Este mes';
+                    break;
+                case 'lastmonth':
+                    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                    const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+                    startDate = lastMonth;
+                    endDate = lastMonthEnd;
+                    label = 'El mes pasado';
+                    break;
+                case 'maximum':
+                    if (ventas.length > 0) {
+                        const fechas = ventas.map(v => new Date(v.fecha));
+                        startDate = new Date(Math.min(...fechas));
+                        endDate = new Date(Math.max(...fechas));
+                    } else {
+                        startDate = endDate = new Date(today);
+                    }
+                    label = 'Máximo';
+                    break;
+                case 'custom':
+                    document.getElementById('custom-date-modal').classList.remove('hidden');
+                    return;
+            }
+            
+            currentDateRangeData = {
+                startDate: startDate.toISOString().split('T')[0],
+                endDate: endDate.toISOString().split('T')[0],
+                label: label
+            };
+            
+            document.getElementById('selected-range-text').textContent = label;
+            
+            // Actualizar clase activa en dropdown
+            document.querySelectorAll('#date-range-dropdown button').forEach(btn => {
+                btn.classList.remove('bg-blue-50');
+            });
+            event.target.classList.add('bg-blue-50');
+        }
+
+        function closeCustomDateModal() {
+            document.getElementById('custom-date-modal').classList.add('hidden');
+        }
+
+        function applyCustomDateRange() {
+            const startDate = document.getElementById('custom-start-date').value;
+            const endDate = document.getElementById('custom-end-date').value;
+            
+            if (!startDate || !endDate) {
+                alert('Por favor selecciona ambas fechas');
+                return;
+            }
+            
+            if (startDate > endDate) {
+                alert('La fecha de inicio no puede ser mayor que la fecha de fin');
+                return;
+            }
+            
+            currentDateRangeData = {
+                startDate: startDate,
+                endDate: endDate,
+                label: `${startDate} - ${endDate}`
+            };
+            
+            document.getElementById('selected-range-text').textContent = currentDateRangeData.label;
+            closeCustomDateModal();
+            actualizarDashboard();
+        }
+
+        // Filtrar datos por rango de fechas
+        function filtrarVentasPorRango() {
+            if (!currentDateRangeData.startDate || !currentDateRangeData.endDate) {
+                return ventas;
+            }
+            
+            return ventas.filter(venta => 
+                venta.fecha >= currentDateRangeData.startDate && 
+                venta.fecha <= currentDateRangeData.endDate
+            );
+        }
+
+        function filtrarGastosPorRango() {
+            if (!currentDateRangeData.startDate || !currentDateRangeData.endDate) {
+                return gastosMeta;
+            }
+            
+            return gastosMeta.filter(gasto => 
+                (gasto.fechaInicio <= currentDateRangeData.endDate && 
+                 gasto.fechaFin >= currentDateRangeData.startDate)
+            );
+        }
+
+        // Función para mostrar tabs
+        function showTab(tabName) {
+            // Ocultar todos los tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remover clase active de todos los botones
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Mostrar tab seleccionado
+            document.getElementById(tabName).classList.add('active');
+            
+            // Activar botón correspondiente
+            event.target.classList.add('active');
+            
+            // Actualizar datos específicos del tab
+            if (tabName === 'dashboard') {
+                actualizarDashboard();
+            } else if (tabName === 'productos') {
+                cargarProductos();
+            } else if (tabName === 'metodos-pago') {
+                cargarMetodosPago();
+            } else if (tabName === 'ventas') {
+                cargarSelectProductos();
+                cargarSelectMetodosPago();
+                cargarVentas();
+                actualizarResumenVentas();
+            } else if (tabName === 'gastos-meta') {
+                cargarGastosMeta();
+                actualizarResumenGastos();
+            }
+        }
+
+        // Gestión de Productos
+        function cargarProductos() {
+            const lista = document.getElementById('productos-lista');
+            lista.innerHTML = '';
+            
+            productos.forEach(producto => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
+                div.innerHTML = `
+                    <div>
+                        <h4 class="font-semibold">${producto.nombre}</h4>
+                        <p class="text-gray-600">${formatearPesos(producto.precio)}</p>
+                    </div>
+                    <div class="space-x-2">
+                        <button onclick="editarProducto(${producto.id})" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="eliminarProducto(${producto.id})" class="text-red-600 hover:text-red-800">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                lista.appendChild(div);
+            });
+        }
+
+        document.getElementById('producto-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('producto-id').value;
+            const nombre = document.getElementById('producto-nombre').value;
+            const precio = parseInt(document.getElementById('producto-precio').value);
+            
+            if (id) {
+                // Editar producto existente
+                const index = productos.findIndex(p => p.id == id);
+                productos[index] = {id: parseInt(id), nombre, precio};
+            } else {
+                // Agregar nuevo producto
+                const nuevoId = productos.length > 0 ? Math.max(...productos.map(p => p.id)) + 1 : 1;
+                productos.push({id: nuevoId, nombre, precio});
+            }
+            
+            guardarDatos();
+            cargarProductos();
+            cargarSelectProductos();
+            document.getElementById('producto-form').reset();
+            document.getElementById('producto-id').value = '';
+        });
+
+        function editarProducto(id) {
+            const producto = productos.find(p => p.id === id);
+            document.getElementById('producto-id').value = producto.id;
+            document.getElementById('producto-nombre').value = producto.nombre;
+            document.getElementById('producto-precio').value = producto.precio;
+        }
+
+        function cancelarEdicionProducto() {
+            document.getElementById('producto-form').reset();
+            document.getElementById('producto-id').value = '';
+        }
+
+        function eliminarProducto(id) {
+            if (confirm('¿Estás seguro de eliminar este producto?')) {
+                productos = productos.filter(p => p.id !== id);
+                guardarDatos();
+                cargarProductos();
+                cargarSelectProductos();
+            }
+        }
+
+        // Gestión de Métodos de Pago
+        function cargarMetodosPago() {
+            const lista = document.getElementById('metodos-lista');
+            lista.innerHTML = '';
+            
+            metodosPago.forEach(metodo => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
+                div.innerHTML = `
+                    <div>
+                        <h4 class="font-semibold">${metodo.nombre}</h4>
+                    </div>
+                    <div class="space-x-2">
+                        <button onclick="editarMetodo(${metodo.id})" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="eliminarMetodo(${metodo.id})" class="text-red-600 hover:text-red-800">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                lista.appendChild(div);
+            });
+        }
+
+        document.getElementById('metodo-pago-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('metodo-id').value;
+            const nombre = document.getElementById('metodo-nombre').value;
+            
+            if (id) {
+                // Editar método existente
+                const index = metodosPago.findIndex(m => m.id == id);
+                metodosPago[index] = {id: parseInt(id), nombre};
+            } else {
+                // Agregar nuevo método
+                const nuevoId = metodosPago.length > 0 ? Math.max(...metodosPago.map(m => m.id)) + 1 : 1;
+                metodosPago.push({id: nuevoId, nombre});
+            }
+            
+            guardarDatos();
+            cargarMetodosPago();
+            cargarSelectMetodosPago();
+            document.getElementById('metodo-pago-form').reset();
+            document.getElementById('metodo-id').value = '';
+        });
+
+        function editarMetodo(id) {
+            const metodo = metodosPago.find(m => m.id === id);
+            document.getElementById('metodo-id').value = metodo.id;
+            document.getElementById('metodo-nombre').value = metodo.nombre;
+        }
+
+        function cancelarEdicionMetodo() {
+            document.getElementById('metodo-pago-form').reset();
+            document.getElementById('metodo-id').value = '';
+        }
+
+        function eliminarMetodo(id) {
+            if (confirm('¿Estás seguro de eliminar este método de pago?')) {
+                metodosPago = metodosPago.filter(m => m.id !== id);
+                guardarDatos();
+                cargarMetodosPago();
+                cargarSelectMetodosPago();
+            }
+        }
+
+        // Cargar selects
+        function cargarSelectProductos() {
+            const select = document.getElementById('venta-producto');
+            select.innerHTML = '<option value="">Seleccionar producto</option>';
+            
+            productos.forEach(producto => {
+                const option = document.createElement('option');
+                option.value = producto.id;
+                option.textContent = `${producto.nombre} - ${formatearPesos(producto.precio)}`;
+                option.dataset.precio = producto.precio;
+                select.appendChild(option);
+            });
+        }
+
+        function cargarSelectMetodosPago() {
+            const select = document.getElementById('venta-metodo-pago');
+            select.innerHTML = '<option value="">Seleccionar método</option>';
+            
+            metodosPago.forEach(metodo => {
+                const option = document.createElement('option');
+                option.value = metodo.id;
+                option.textContent = metodo.nombre;
+                select.appendChild(option);
+            });
+        }
+
+        // Auto-llenar precio cuando se selecciona producto
+        document.getElementById('venta-producto').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.dataset.precio) {
+                document.getElementById('venta-precio').value = selectedOption.dataset.precio;
+            }
+        });
+
+        // Gestión de Ventas
+        document.getElementById('venta-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const productoId = parseInt(document.getElementById('venta-producto').value);
+            const precio = parseInt(document.getElementById('venta-precio').value);
+            const metodoPagoId = parseInt(document.getElementById('venta-metodo-pago').value);
+            const fecha = document.getElementById('venta-fecha').value;
+            const notas = document.getElementById('venta-notas').value;
+            
+            const producto = productos.find(p => p.id === productoId);
+            const metodoPago = metodosPago.find(m => m.id === metodoPagoId);
+            
+            const nuevaVenta = {
+                id: ventas.length > 0 ? Math.max(...ventas.map(v => v.id)) + 1 : 1,
+                producto: producto.nombre,
+                precio: precio,
+                metodoPago: metodoPago.nombre,
+                fecha: fecha,
+                notas: notas,
+                timestamp: new Date().toISOString()
+            };
+            
+            ventas.push(nuevaVenta);
+            guardarDatos();
+            cargarVentas();
+            actualizarResumenVentas();
+            actualizarDashboard();
+            document.getElementById('venta-form').reset();
+            
+            // Establecer fecha actual por defecto
+            document.getElementById('venta-fecha').value = new Date().toISOString().split('T')[0];
+        });
+
+        function cargarVentas() {
+            const tabla = document.getElementById('ventas-tabla');
+            tabla.innerHTML = '';
+            
+            // Ordenar ventas por fecha descendente
+            const ventasOrdenadas = [...ventas].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+            
+            ventasOrdenadas.forEach(venta => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${venta.fecha}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${venta.producto}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatearPesos(venta.precio)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${venta.metodoPago}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button onclick="eliminarVenta(${venta.id})" class="text-red-600 hover:text-red-800">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tabla.appendChild(tr);
+            });
+        }
+
+        function eliminarVenta(id) {
+            if (confirm('¿Estás seguro de eliminar esta venta?')) {
+                ventas = ventas.filter(v => v.id !== id);
+                guardarDatos();
+                cargarVentas();
+                actualizarResumenVentas();
+                actualizarDashboard();
+            }
+        }
+
+        function actualizarResumenVentas() {
+            const hoy = new Date().toISOString().split('T')[0];
+            const inicioSemana = new Date();
+            inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay());
+            const inicioSemanaStr = inicioSemana.toISOString().split('T')[0];
+            
+            const ventasHoy = ventas.filter(v => v.fecha === hoy);
+            const ventasSemana = ventas.filter(v => v.fecha >= inicioSemanaStr);
+            
+            document.getElementById('ventas-hoy').textContent = ventasHoy.length;
+            document.getElementById('ingresos-hoy').textContent = formatearPesos(ventasHoy.reduce((sum, v) => sum + v.precio, 0));
+            document.getElementById('ventas-semana').textContent = ventasSemana.length;
+            document.getElementById('ingresos-semana').textContent = formatearPesos(ventasSemana.reduce((sum, v) => sum + v.precio, 0));
+        }
+
+        // Gestión de Gastos Meta
+        document.getElementById('gasto-meta-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const campana = document.getElementById('gasto-campana').value;
+            const fechaInicio = document.getElementById('gasto-fecha-inicio').value;
+            const fechaFin = document.getElementById('gasto-fecha-fin').value;
+            const monto = parseInt(document.getElementById('gasto-monto').value);
+            const descripcion = document.getElementById('gasto-descripcion').value;
+            
+            // Verificar si hay un gasto existente que se superponga con estas fechas
+            const gastoExistente = gastosMeta.find(g => 
+                (fechaInicio >= g.fechaInicio && fechaInicio <= g.fechaFin) ||
+                (fechaFin >= g.fechaInicio && fechaFin <= g.fechaFin) ||
+                (fechaInicio <= g.fechaInicio && fechaFin >= g.fechaFin)
+            );
+            
+            if (gastoExistente) {
+                if (confirm('Ya existe un gasto que se superpone con estas fechas. ¿Deseas actualizar el gasto existente?')) {
+                    // Actualizar gasto existente
+                    const index = gastosMeta.findIndex(g => g.id === gastoExistente.id);
+                    gastosMeta[index] = {
+                        id: gastoExistente.id,
+                        campana,
+                        fechaInicio,
+                        fechaFin,
+                        monto,
+                        descripcion,
+                        timestamp: new Date().toISOString()
+                    };
+                }
+            } else {
+                // Crear nuevo gasto
+                const nuevoGasto = {
+                    id: gastosMeta.length > 0 ? Math.max(...gastosMeta.map(g => g.id)) + 1 : 1,
+                    campana,
+                    fechaInicio,
+                    fechaFin,
+                    monto,
+                    descripcion,
+                    timestamp: new Date().toISOString()
+                };
+                
+                gastosMeta.push(nuevoGasto);
+            }
+            
+            guardarDatos();
+            cargarGastosMeta();
+            actualizarResumenGastos();
+            actualizarDashboard();
+            document.getElementById('gasto-meta-form').reset();
+        });
+
+        function cargarGastosMeta() {
+            const tabla = document.getElementById('gastos-tabla');
+            tabla.innerHTML = '';
+            
+            // Ordenar gastos por fecha descendente
+            const gastosOrdenados = [...gastosMeta].sort((a, b) => new Date(b.fechaFin) - new Date(a.fechaFin));
+            
+            gastosOrdenados.forEach(gasto => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gasto.campana}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gasto.fechaInicio}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gasto.fechaFin}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatearPesos(gasto.monto)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button onclick="eliminarGasto(${gasto.id})" class="text-red-600 hover:text-red-800">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tabla.appendChild(tr);
+            });
+        }
+
+        function eliminarGasto(id) {
+            if (confirm('¿Estás seguro de eliminar este gasto?')) {
+                gastosMeta = gastosMeta.filter(g => g.id !== id);
+                guardarDatos();
+                cargarGastosMeta();
+                actualizarResumenGastos();
+                actualizarDashboard();
+            }
+        }
+
+        function calcularGastoPorFecha(fecha) {
+            return gastosMeta
+                .filter(g => fecha >= g.fechaInicio && fecha <= g.fechaFin)
+                .reduce((sum, g) => {
+                    const dias = (new Date(g.fechaFin) - new Date(g.fechaInicio)) / (1000 * 60 * 60 * 24) + 1;
+                    return sum + (g.monto / dias);
+                }, 0);
+        }
+
+        function actualizarResumenGastos() {
+            const hoy = new Date().toISOString().split('T')[0];
+            const inicioSemana = new Date();
+            inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay());
+            const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+            
+            const gastoHoy = calcularGastoPorFecha(hoy);
+            
+            let gastoSemana = 0;
+            for (let i = 0; i < 7; i++) {
+                const fecha = new Date(inicioSemana);
+                fecha.setDate(fecha.getDate() + i);
+                gastoSemana += calcularGastoPorFecha(fecha.toISOString().split('T')[0]);
+            }
+            
+            let gastoMes = 0;
+            const diasEnMes = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+            for (let i = 1; i <= diasEnMes; i++) {
+                const fecha = new Date(new Date().getFullYear(), new Date().getMonth(), i).toISOString().split('T')[0];
+                gastoMes += calcularGastoPorFecha(fecha);
+            }
+            
+            const gastoTotal = gastosMeta.reduce((sum, g) => sum + g.monto, 0);
+            
+            document.getElementById('gasto-hoy').textContent = formatearPesos(Math.round(gastoHoy));
+            document.getElementById('gasto-semana').textContent = formatearPesos(Math.round(gastoSemana));
+            document.getElementById('gasto-mes').textContent = formatearPesos(Math.round(gastoMes));
+            document.getElementById('gasto-total').textContent = formatearPesos(gastoTotal);
+        }
+
+        // Dashboard
+        function actualizarDashboard() {
+            const ventasFiltradas = filtrarVentasPorRango();
+            const gastosFiltrados = filtrarGastosPorRango();
+            
+            const totalIngresos = ventasFiltradas.reduce((sum, v) => sum + v.precio, 0);
+            const totalGastos = gastosFiltrados.reduce((sum, g) => sum + g.monto, 0);
+            const gananciaNeta = totalIngresos - totalGastos;
+            const roi = totalGastos > 0 ? ((gananciaNeta / totalGastos) * 100) : 0;
+            
+            document.getElementById('total-ingresos').textContent = formatearPesos(totalIngresos);
+            document.getElementById('total-gastos').textContent = formatearPesos(totalGastos);
+            document.getElementById('ganancia-neta').textContent = formatearPesos(gananciaNeta);
+            document.getElementById('roi-percentage').textContent = roi.toFixed(1) + '%';
+            
+            actualizarGraficos();
+        }
+
+        function actualizarGraficos() {
+            const ventasFiltradas = filtrarVentasPorRango();
+            const gastosFiltrados = filtrarGastosPorRango();
+            
+            // Generar array de fechas para el período seleccionado
+            const fechas = [];
+            const ventasData = [];
+            const gastosData = [];
+            
+            if (currentDateRangeData.startDate && currentDateRangeData.endDate) {
+                const inicio = new Date(currentDateRangeData.startDate);
+                const fin = new Date(currentDateRangeData.endDate);
+                
+                // Determinar el intervalo basado en la cantidad de días
+                const diasTotal = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
+                let intervalo = 1; // días
+                
+                if (diasTotal > 30) {
+                    intervalo = Math.ceil(diasTotal / 30); // Mostrar máximo 30 puntos
+                }
+                
+                for (let fecha = new Date(inicio); fecha <= fin; fecha.setDate(fecha.getDate() + intervalo)) {
+                    const fechaStr = fecha.toISOString().split('T')[0];
+                    
+                    fechas.push(fecha.toLocaleDateString('es-CO', { 
+                        day: 'numeric', 
+                        month: 'short',
+                        ...(diasTotal > 365 ? { year: '2-digit' } : {})
+                    }));
+                    
+                    // Calcular ventas del período
+                    let ventasRango = 0;
+                    for (let i = 0; i < intervalo && new Date(fechaStr).getTime() + (i * 24 * 60 * 60 * 1000) <= fin.getTime(); i++) {
+                        const fechaCalculo = new Date(fecha.getTime() + (i * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+                        ventasRango += ventasFiltradas.filter(v => v.fecha === fechaCalculo).reduce((sum, v) => sum + v.precio, 0);
+                    }
+                    
+                    // Calcular gastos del período
+                    let gastosRango = 0;
+                    for (let i = 0; i < intervalo && new Date(fechaStr).getTime() + (i * 24 * 60 * 60 * 1000) <= fin.getTime(); i++) {
+                        const fechaCalculo = new Date(fecha.getTime() + (i * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+                        gastosRango += calcularGastoPorFecha(fechaCalculo);
+                    }
+                    
+                    ventasData.push(ventasRango);
+                    gastosData.push(Math.round(gastosRango));
+                }
+            }
+            
+            // Gráfico Ventas vs Gastos
+            if (charts.ventasGastos) {
+                charts.ventasGastos.destroy();
+            }
+            
+            const ctxVentasGastos = document.getElementById('chartVentasGastos').getContext('2d');
+            charts.ventasGastos = new Chart(ctxVentasGastos, {
+                type: 'line',
+                data: {
+                    labels: fechas,
+                    datasets: [{
+                        label: 'Ventas',
+                        data: ventasData,
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Gastos',
+                        data: gastosData,
+                        borderColor: 'rgb(239, 68, 68)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatearPesos(value);
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatearPesos(context.parsed.y);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico Productos Más Vendidos
+            const productosVendidos = {};
+            ventasFiltradas.forEach(venta => {
+                productosVendidos[venta.producto] = (productosVendidos[venta.producto] || 0) + 1;
+            });
+            
+            const productosOrdenados = Object.entries(productosVendidos)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 5);
+            
+            if (charts.productos) {
+                charts.productos.destroy();
+            }
+            
+            if (productosOrdenados.length > 0) {
+                const ctxProductos = document.getElementById('chartProductos').getContext('2d');
+                charts.productos = new Chart(ctxProductos, {
+                    type: 'doughnut',
+                    data: {
+                        labels: productosOrdenados.map(([nombre]) => nombre),
+                        datasets: [{
+                            data: productosOrdenados.map(([, cantidad]) => cantidad),
+                            backgroundColor: [
+                                '#3B82F6',
+                                '#EF4444',
+                                '#10B981',
+                                '#F59E0B',
+                                '#8B5CF6'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Reportes
+        function generarReporte() {
+            const fechaInicio = document.getElementById('reporte-fecha-inicio').value;
+            const fechaFin = document.getElementById('reporte-fecha-fin').value;
+            
+            if (!fechaInicio || !fechaFin) {
+                alert('Por favor selecciona un rango de fechas');
+                return;
+            }
+            
+            const ventasFiltradas = ventas.filter(v =>
+                v.fecha >= fechaInicio && v.fecha <= fechaFin
+            );
+            
+            const gastosFiltrados = gastosMeta.filter(g =>
+                (g.fechaInicio <= fechaFin && g.fechaFin >= fechaInicio)
+            );
+            
+            const totalVentas = ventasFiltradas.reduce((sum, v) => sum + v.precio, 0);
+            const totalGastos = gastosFiltrados.reduce((sum, g) => sum + g.monto, 0);
+            const ganancia = totalVentas - totalGastos;
+            const roi = totalGastos > 0 ? ((ganancia / totalGastos) * 100) : 0;
+            
+            const reporteDiv = document.getElementById('reporte-detallado');
+            reporteDiv.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-green-100 p-4 rounded-lg">
+                        <h4 class="font-semibold text-green-800">Ingresos</h4>
+                        <p class="text-2xl font-bold text-green-600">${formatearPesos(totalVentas)}</p>
+                    </div>
+                    <div class="bg-red-100 p-4 rounded-lg">
+                        <h4 class="font-semibold text-red-800">Gastos</h4>
+                        <p class="text-2xl font-bold text-red-600">${formatearPesos(totalGastos)}</p>
+                    </div>
+                    <div class="bg-blue-100 p-4 rounded-lg">
+                        <h4 class="font-semibold text-blue-800">Ganancia</h4>
+                        <p class="text-2xl font-bold text-blue-600">${formatearPesos(ganancia)}</p>
+                    </div>
+                    <div class="bg-purple-100 p-4 rounded-lg">
+                        <h4 class="font-semibold text-purple-800">ROI</h4>
+                        <p class="text-2xl font-bold text-purple-600">${roi.toFixed(1)}%</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold mb-3">Ventas en el Período</h4>
+                        <div class="max-h-64 overflow-y-auto">
+                            ${ventasFiltradas.length > 0 ?
+                                ventasFiltradas.map(v => `
+                                    <div class="flex justify-between py-2 border-b">
+                                        <span>${v.fecha} - ${v.producto}</span>
+                                        <span class="font-semibold">${formatearPesos(v.precio)}</span>
+                                    </div>
+                                `).join('') :
+                                '<p class="text-gray-500">No hay ventas en este período</p>'
+                            }
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold mb-3">Gastos en el Período</h4>
+                        <div class="max-h-64 overflow-y-auto">
+                            ${gastosFiltrados.length > 0 ?
+                                gastosFiltrados.map(g => `
+                                    <div class="flex justify-between py-2 border-b">
+                                        <span>${g.campana} (${g.fechaInicio} - ${g.fechaFin})</span>
+                                        <span class="font-semibold">${formatearPesos(g.monto)}</span>
+                                    </div>
+                                `).join('') :
+                                '<p class="text-gray-500">No hay gastos en este período</p>'
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Actualizar gráficos de reporte
+            actualizarGraficosReporte(ventasFiltradas, gastosFiltrados, fechaInicio, fechaFin);
+        }
+
+        function actualizarGraficosReporte(ventasFiltradas, gastosFiltrados, fechaInicio, fechaFin) {
+            // Gráfico de ROI
+            if (charts.roi) {
+                charts.roi.destroy();
+            }
+            
+            const ctxROI = document.getElementById('chartROI').getContext('2d');
+            const totalVentas = ventasFiltradas.reduce((sum, v) => sum + v.precio, 0);
+            const totalGastos = gastosFiltrados.reduce((sum, g) => sum + g.monto, 0);
+            const ganancia = totalVentas - totalGastos;
+            
+            charts.roi = new Chart(ctxROI, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Ganancia', 'Gastos'],
+                    datasets: [{
+                        data: [ganancia, totalGastos],
+                        backgroundColor: ['#10B981', '#EF4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + formatearPesos(context.parsed);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de ingresos por día
+            if (charts.ingresos) {
+                charts.ingresos.destroy();
+            }
+            
+            const diasPeriodo = [];
+            const ingresosPorDia = [];
+            
+            const inicio = new Date(fechaInicio);
+            const fin = new Date(fechaFin);
+            
+            for (let fecha = new Date(inicio); fecha <= fin; fecha.setDate(fecha.getDate() + 1)) {
+                const fechaStr = fecha.toISOString().split('T')[0];
+                diasPeriodo.push(fecha.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }));
+                
+                const ingresosDia = ventasFiltradas
+                    .filter(v => v.fecha === fechaStr)
+                    .reduce((sum, v) => sum + v.precio, 0);
+                
+                ingresosPorDia.push(ingresosDia);
+            }
+            
+            const ctxIngresos = document.getElementById('chartIngresos').getContext('2d');
+            charts.ingresos = new Chart(ctxIngresos, {
+                type: 'bar',
+                data: {
+                    labels: diasPeriodo,
+                    datasets: [{
+                        label: 'Ingresos',
+                        data: ingresosPorDia,
+                        backgroundColor: 'rgba(34, 197, 94, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatearPesos(value);
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Ingresos: ' + formatearPesos(context.parsed.y);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Cerrar dropdown cuando se hace clic fuera
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('date-range-dropdown');
+            const button = document.getElementById('date-range-button');
+            
+            if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            // Establecer fecha actual por defecto
+            document.getElementById('venta-fecha').value = new Date().toISOString().split('T')[0];
+            
+            // Establecer rango de fechas por defecto
+            updateDateRangeData('last7days');
+            
+            // Cargar ID de sincronización si existe
+            if (syncId) {
+                document.getElementById('sync-id').value = syncId;
+            }
+            
+            // Cargar datos iniciales
+            cargarProductos();
+            cargarMetodosPago();
+            cargarSelectProductos();
+            cargarSelectMetodosPago();
+            cargarVentas();
+            cargarGastosMeta();
+            actualizarResumenVentas();
+            actualizarResumenGastos();
+            actualizarDashboard();
+        });
+    </script>
+</body>
+</html>
+    <script id="html_badge_script1">
+        window.__genspark_remove_badge_link = "https://www.genspark.ai/api/html_badge/" +
+            "remove_badge?token=To%2FBnjzloZ3UfQdcSaYfDuYr5GmOvXRSFitL3j4jYjey9%2Bt9Nw8OICz%2B7eo0lmY47MZu9JoLlPFqOz71OW5VDBPorEtQ3%2BYoLW6u2rBQUHS3P9KzgjKLqxh1y3%2Bvi9%2BbTL4vRB6mJs9mvMef8qAJy3l4rCQ5TVVBP86OzQ4zPvtrcuwuTOE58CHaHfLTnHRHWnOn0t8DIH4XnfmfwHTlk44hqKWnfDOqOOjjmNu%2FB0P%2BKyh4JjA7SO7EIm%2FEWCxRgIh2pKAjH03qIfYUGw5QHm%2BkSVCTcRtRzOVf05jbrUsJ5a3jFclDTwOO1WqbGmhWNjFwyh0%2BfuMUuXc3gu2BluOR3JW329oBFIl1RCEHJwCkOCw77UTGqOBQN3721YsQKFWOgWG1QQYegkOS6FHsqE3QrDPcP8yLhFG4%2B4LJUBR19XubO9CJuZt%2BwM5ryh1Qatn9LsjTUK66NLmP5DtBq%2BKio17qwJV3X3y3lXuuPX8ukD3t773aJaEWDufio6hzy1oc8hBH7AkDzgFRu5SqL97dBtNMZWXNPi%2FJxcgmKGE%3D";
+        window.__genspark_locale = "es-ES";
+        window.__genspark_token = "To/BnjzloZ3UfQdcSaYfDuYr5GmOvXRSFitL3j4jYjey9+t9Nw8OICz+7eo0lmY47MZu9JoLlPFqOz71OW5VDBPorEtQ3+YoLW6u2rBQUHS3P9KzgjKLqxh1y3+vi9+bTL4vRB6mJs9mvMef8qAJy3l4rCQ5TVVBP86OzQ4zPvtrcuwuTOE58CHaHfLTnHRHWnOn0t8DIH4XnfmfwHTlk44hqKWnfDOqOOjjmNu/B0P+Kyh4JjA7SO7EIm/EWCxRgIh2pKAjH03qIfYUGw5QHm+kSVCTcRtRzOVf05jbrUsJ5a3jFclDTwOO1WqbGmhWNjFwyh0+fuMUuXc3gu2BluOR3JW329oBFIl1RCEHJwCkOCw77UTGqOBQN3721YsQKFWOgWG1QQYegkOS6FHsqE3QrDPcP8yLhFG4+4LJUBR19XubO9CJuZt+wM5ryh1Qatn9LsjTUK66NLmP5DtBq+Kio17qwJV3X3y3lXuuPX8ukD3t773aJaEWDufio6hzy1oc8hBH7AkDzgFRu5SqL97dBtNMZWXNPi/JxcgmKGE=";
+    </script>
+    
+        <script id="html_badge_script2" src="https://www.genspark.ai/html_badge.js"></script>
+        
+    <script id="html_notice_dialog_script" src="https://www.genspark.ai/notice_dialog.js"></script>
+    
