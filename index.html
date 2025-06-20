@@ -505,10 +505,47 @@
             console.log('Datos iniciales cargados exitosamente:', {
                 productos, metodosPago, ventas, gastosMeta
             });
+            // Ahora sí inicializamos la aplicación:
             inicializarAplicacion();
         } catch (error) {
             console.error('cargarDatosDesdeAPI: fallo en carga inicial:', error);
             alert('No se pudieron cargar los datos iniciales. Revisa la consola para más detalles:\n' + error.message);
+        }
+    }
+
+    // --- Función inicializarAplicacion definida correctamente ---
+    function inicializarAplicacion() {
+        console.log('inicializarAplicacion: configurando vistas y valores por defecto');
+        // Establecer fecha actual por defecto en formularios
+        const hoyStr = new Date().toISOString().split('T')[0];
+        // Venta
+        const ventaFechaInput = document.getElementById('venta-fecha');
+        if (ventaFechaInput) ventaFechaInput.value = hoyStr;
+        // Gasto: inicio y fin por defecto hoy
+        const gastoInicio = document.getElementById('gasto-fecha-inicio');
+        const gastoFin = document.getElementById('gasto-fecha-fin');
+        if (gastoInicio) gastoInicio.value = hoyStr;
+        if (gastoFin) gastoFin.value = hoyStr;
+        // Reporte: opcional no establecer por defecto
+
+        // Cargar datos en las vistas
+        cargarProductos();
+        cargarMetodosPago();
+        cargarVentas();
+        cargarGastosMeta();
+
+        // Actualizar resúmenes
+        actualizarResumenVentas();
+        actualizarResumenGastos();
+
+        // Establecer rango de fechas por defecto y actualizar dashboard
+        updateDateRangeData('last7days');
+        actualizarDashboard();
+
+        // Ajuste visual: reemplazar sección de sincronización local por nube
+        const textoNube = document.querySelector('.text-right');
+        if (textoNube) {
+            textoNube.innerHTML = `<p class="text-gray-600">Datos en la nube <i class="fas fa-cloud text-blue-500"></i></p>`;
         }
     }
 
@@ -560,7 +597,6 @@
             nombre: document.getElementById('producto-nombre').value,
             precio: parseFloat(document.getElementById('producto-precio').value)
         };
-
         try {
             if (id) {
                 // Editar
@@ -728,7 +764,6 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(venta)
             });
-            // Agregar localmente
             if (nuevaVenta) {
                 const producto = productos.find(p => p.id === nuevaVenta.producto_id);
                 const metodo = metodosPago.find(m => m.id === nuevaVenta.metodo_pago_id);
