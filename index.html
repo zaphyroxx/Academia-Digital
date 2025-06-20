@@ -974,20 +974,7 @@
                fechaVenta <= currentDateRangeData.endDate;
     });
 }
-    function calcularGastoPorFecha(fecha) {
-    return gastosMeta.reduce((sum, gasto) => {
-        const fechaInicio = new Date(gasto.fechaInicio);
-        const fechaFin = new Date(gasto.fechaFin);
-        const fechaSeleccionada = new Date(fecha);
-
-        if (fechaSeleccionada >= fechaInicio && fechaSeleccionada <= fechaFin) {
-            const diasTotales = (fechaFin - fechaInicio) / (1000 * 60 * 60 * 24) + 1; // Incluye el primer y último día
-            const gastoDiario = parseFloat(gasto.monto) / diasTotales;
-            sum += gastoDiario;
-        }
-        return sum;
-    }, 0);
-}
+   
     
     document.addEventListener('click', function(event) {
         const dropdown = document.getElementById('date-range-dropdown');
