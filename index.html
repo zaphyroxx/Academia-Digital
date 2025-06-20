@@ -27,7 +27,7 @@
         .sync-success { background-color: #10B981; color: white; }
         .sync-error { background-color: #EF4444; color: white; }
         .sync-syncing { background-color: #F59E0B; color: white; }
-         {
+        @media print {
             body { -webkit-print-color-adjust: exact; }
             .no-print { display: none !important; }
         }
@@ -456,8 +456,55 @@
         }
     }
 
+    // --- FUNCIONES CORREGIDAS ---
+    
+    function calcularGastoPorFecha(fecha) {
+        let gasto = 0;
+        const fechaObj = new Date(fecha);
+        
+        gastosMeta.forEach(gastoMeta => {
+            const inicio = new Date(gastoMeta.fecha_inicio);
+            const fin = new Date(gastoMeta.fecha_fin);
+            
+            // Verificar si la fecha está dentro del rango de la campaña
+            if (fechaObj >= inicio && fechaObj <= fin) {
+                // Calcular la proporción diaria
+                const diasTotales = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
+                gasto += parseFloat(gastoMeta.monto) / diasTotales;
+            }
+        });
+        
+        return gasto;
+    }
 
-    // --- Funciones de la Aplicación (Modificadas) ---
+    function actualizarDashboard() {
+        const ventasFiltradas = filtrarVentasPorRango();
+        const totalIngresos = ventasFiltradas.reduce((sum, v) => sum + parseFloat(v.precio), 0);
+        
+        // Calcular gastos solo para el rango seleccionado
+        let totalGastos = 0;
+        if (currentDateRangeData.startDate && currentDateRangeData.endDate) {
+            const inicio = new Date(currentDateRangeData.startDate);
+            const fin = new Date(currentDateRangeData.endDate);
+            
+            for (let fecha = new Date(inicio); fecha <= fin; fecha.setDate(fecha.getDate() + 1)) {
+                const fechaStr = fecha.toISOString().split('T')[0];
+                totalGastos += calcularGastoPorFecha(fechaStr);
+            }
+        }
+        
+        const gananciaNeta = totalIngresos - totalGastos;
+        const roi = totalGastos > 0 ? ((gananciaNeta / totalGastos) * 100) : (totalIngresos > 0 ? Infinity : 0);
+
+        document.getElementById('total-ingresos').textContent = formatearPesos(totalIngresos);
+        document.getElementById('total-gastos').textContent = formatearPesos(totalGastos);
+        document.getElementById('ganancia-neta').textContent = formatearPesos(gananciaNeta);
+        document.getElementById('roi-percentage').textContent = roi === Infinity ? '∞%' : `${roi.toFixed(1)}%`;
+        
+        actualizarGraficos();
+    }
+
+    // --- Funciones de la Aplicación ---
 
     function formatearPesos(cantidad) {
         return '$' + (Number(cantidad) || 0).toLocaleString('es-CO');
@@ -523,7 +570,7 @@
             }
             cargarProductos();
             cancelarEdicionProducto();
-        } catch (error) {}
+        } catch(error) {}
     });
 
     function editarProducto(id) {
@@ -804,18 +851,9 @@
         document.getElementById('ingresos-semana').textContent = formatearPesos(ventasSemana.reduce((sum, v) => sum + parseFloat(v.precio), 0));
     }
 
-    function calcularGastoPorFecha(fecha) {
-        return gastosMeta
-            .filter(g => fecha >= g.fecha_inicio && fecha <= g.fecha_fin)
-            .reduce((sum, g) => {
-                const dias = (new Date(g.fecha_fin) - new Date(g.fecha_inicio)) / (1000 * 60 * 60 * 24) + 1;
-                return sum + (parseFloat(g.monto) / dias);
-            }, 0);
-    }
-
     function actualizarResumenGastos() {
         const hoyStr = new Date().toISOString().split('T')[0];
-        const hoy = new Date(hoyStr + 'T00:00:00');
+        const hoy = new Date(hoyStr);
         const semanaInicio = new Date(hoy);
         semanaInicio.setDate(hoy.getDate() - (hoy.getDay() === 0 ? 6 : hoy.getDay() - 1));
         const mesInicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
@@ -836,28 +874,6 @@
         document.getElementById('gasto-total').textContent = formatearPesos(gastosMeta.reduce((sum, g) => sum + parseFloat(g.monto), 0));
     }
     
-    function actualizarDashboard() {
-        const ventasFiltradas = filtrarVentasPorRango();
-        let totalGastos = 0;
-        const rangoInicio = new Date(currentDateRangeData.startDate + 'T00:00:00');
-        const rangoFin = new Date(currentDateRangeData.endDate + 'T00:00:00');
-
-        for (let fecha = new Date(rangoInicio); fecha <= rangoFin; fecha.setDate(fecha.getDate() + 1)) {
-            totalGastos += calcularGastoPorFecha(fecha.toISOString().split('T')[0]);
-        }
-
-        const totalIngresos = ventasFiltradas.reduce((sum, v) => sum + parseFloat(v.precio), 0);
-        const gananciaNeta = totalIngresos - totalGastos;
-        const roi = totalGastos > 0 ? ((gananciaNeta / totalGastos) * 100) : (totalIngresos > 0 ? Infinity : 0);
-
-        document.getElementById('total-ingresos').textContent = formatearPesos(totalIngresos);
-        document.getElementById('total-gastos').textContent = formatearPesos(totalGastos);
-        document.getElementById('ganancia-neta').textContent = formatearPesos(gananciaNeta);
-        document.getElementById('roi-percentage').textContent = roi === Infinity ? '∞%' : `${roi.toFixed(1)}%`;
-        
-        actualizarGraficos();
-    }
-    
     function actualizarGraficos() {
         const ventasFiltradas = filtrarVentasPorRango();
         const fechas = [];
@@ -865,8 +881,8 @@
         const gastosData = [];
         
         if (currentDateRangeData.startDate && currentDateRangeData.endDate) {
-            const inicio = new Date(currentDateRangeData.startDate + 'T00:00:00');
-            const fin = new Date(currentDateRangeData.endDate + 'T00:00:00');
+            const inicio = new Date(currentDateRangeData.startDate);
+            const fin = new Date(currentDateRangeData.endDate);
             
             for (let fecha = new Date(inicio); fecha <= fin; fecha.setDate(fecha.getDate() + 1)) {
                 const fechaStr = fecha.toISOString().split('T')[0];
@@ -877,7 +893,7 @@
         }
         
         if (charts.ventasGastos) charts.ventasGastos.destroy();
-        charts.ventasGastos = new Chart(document.getElementById('chartVentasGastos').getContext('2d'), { type: 'line', data: { labels: fechas, datasets: [{ label: 'Ventas', data: ventasData, borderColor: 'rgb(34, 197, 94)', backgroundColor: 'rgba(34, 197, 94, 0.1)', tension: 0.1 }, { label: 'Gastos', data: gastosData, borderColor: 'rgb(239, 68, 68)', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: value => formatearPesos(value) } } }, plugins: { tooltip: { callbacks: { label: context => `${context.dataset.label}: ${formatearPesos(context.parsed.y)}` } } } } });
+        charts.ventasGastos = new Chart(document.getElementById('chartVentasGastos').getContext('2d'), { type: 'line', data: { labels: fechas, datasets: [{ label: 'Ventas', data: ventasData, borderColor: 'rgb(34, 197, 94)', backgroundColor: 'rgba(34, 197, 94, 0.1)', tension: 0.1 }, { label: 'Gastos', data: gastosData, borderColor: 'rgb(239, 68, 68)', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: value => formatearPesos(value) } } }, plugins: { tooltip: { callbacks: { label: context => `${context.dataset.label}: ${formatearPesos(context.parsed.y)}` } } } });
         
         const productosVendidos = ventasFiltradas.reduce((acc, venta) => {
             acc[venta.producto_nombre] = (acc[venta.producto_nombre] || 0) + 1;
@@ -903,8 +919,8 @@
 
         const ventasReporte = ventas.filter(v => v.fecha >= fechaInicio && v.fecha <= fechaFin);
         let gastosReporte = 0;
-        const rangoInicio = new Date(fechaInicio + 'T00:00:00');
-        const rangoFin = new Date(fechaFin + 'T00:00:00');
+        const rangoInicio = new Date(fechaInicio);
+        const rangoFin = new Date(fechaFin);
 
         for (let fecha = new Date(rangoInicio); fecha <= rangoFin; fecha.setDate(fecha.getDate() + 1)) {
             gastosReporte += calcularGastoPorFecha(fecha.toISOString().split('T')[0]);
