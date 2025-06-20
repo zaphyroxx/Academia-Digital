@@ -126,7 +126,7 @@
                     </div>
                 </div>
 
-                <!-- Indicadores: ahora 5 columnas en md -->
+                <!-- Indicadores: 5 columnas en md -->
                 <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
                     <!-- Ingresos Totales -->
                     <div class="bg-gradient-to-r from-green-400 to-green-600 p-6 rounded-lg text-white">
@@ -416,20 +416,33 @@
     let currentDateRange = 'last7days';
     let currentDateRangeData = {};
 
-    // --- NUEVO: Funciones de API ---
+    // --- NUEVO: Funciones de API con depuración ---
     async function fetchAPI(endpoint, options = {}) {
         const indicator = document.getElementById('sync-indicator');
         const text = document.getElementById('sync-text');
 
+        // Mostrar indicador
         indicator.className = 'sync-indicator sync-syncing';
         text.textContent = 'Sincronizando...';
         indicator.style.display = 'block';
 
         try {
-            const response = await fetch(`${API_URL}${endpoint}`, options);
+            const url = `${API_URL}${endpoint}`;
+            console.log('fetchAPI: haciendo petición a', url, 'options:', options);
+            const response = await fetch(url, options);
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `Error en la petición a ${endpoint}`);
+                let errorMsg = `Error en la petición a ${endpoint}: status ${response.status}`;
+                let errorData = null;
+                try {
+                    errorData = await response.json();
+                    console.warn('fetchAPI: respuesta de error JSON:', errorData);
+                } catch(e) {
+                    console.warn('fetchAPI: no se pudo parsear JSON de error:', e);
+                }
+                if (errorData && errorData.error) {
+                    errorMsg += ` - ${errorData.error}`;
+                }
+                throw new Error(errorMsg);
             }
 
             indicator.className = 'sync-indicator sync-success';
@@ -438,40 +451,64 @@
             if (response.status === 204) { // No Content
                 return null;
             }
-            return response.json();
+            const data = await response.json();
+            console.log(`fetchAPI: data recibida de ${endpoint}:`, data);
+            return data;
         } catch (error) {
-            console.error(`Error en API: ${error.message}`);
+            console.error('fetchAPI: error en petición a', endpoint, error);
             indicator.className = 'sync-indicator sync-error';
             text.textContent = 'Error de conexión';
-            alert(`Error de comunicación con el servidor: ${error.message}`);
+            // Mostrar mensaje detallado en alert para que el usuario vea motivo
+            alert(`Error de comunicación con el servidor en ${endpoint}: ${error.message}`);
             throw error;
         } finally {
+            // Ocultar indicador tras un momento
             setTimeout(() => {
-                indicator.style.display = 'none';
+                document.getElementById('sync-indicator').style.display = 'none';
             }, 2000);
         }
     }
 
-    // Función para cargar todos los datos iniciales desde la API
+    // Carga datos iniciales por separado para capturar errores específicos
     async function cargarDatosDesdeAPI() {
+        console.log('cargarDatosDesdeAPI: iniciando carga de productos, métodos de pago, ventas, gastos');
         try {
-            // Usamos Promise.all para hacer las peticiones en paralelo
-            const [productosData, metodosPagoData, ventasData, gastosData] = await Promise.all([
-                fetchAPI('/productos'),
-                fetchAPI('/metodos-pago'),
-                fetchAPI('/ventas'),
-                fetchAPI('/gastos')
-            ]);
+            // Cargar productos
+            try {
+                productos = await fetchAPI('/productos');
+            } catch(errProd) {
+                console.error('Error al cargar productos:', errProd);
+                throw new Error('No se pudieron cargar los productos: ' + errProd.message);
+            }
+            // Cargar métodos de pago
+            try {
+                metodosPago = await fetchAPI('/metodos-pago');
+            } catch(errMet) {
+                console.error('Error al cargar métodos de pago:', errMet);
+                throw new Error('No se pudieron cargar los métodos de pago: ' + errMet.message);
+            }
+            // Cargar ventas
+            try {
+                ventas = await fetchAPI('/ventas');
+            } catch(errVen) {
+                console.error('Error al cargar ventas:', errVen);
+                throw new Error('No se pudieron cargar las ventas: ' + errVen.message);
+            }
+            // Cargar gastos
+            try {
+                gastosMeta = await fetchAPI('/gastos');
+            } catch(errGas) {
+                console.error('Error al cargar gastos:', errGas);
+                throw new Error('No se pudieron cargar los gastos: ' + errGas.message);
+            }
 
-            productos = productosData;
-            metodosPago = metodosPagoData;
-            ventas = ventasData;
-            gastosMeta = gastosData;
-
-            // Una vez cargados los datos, actualizamos toda la UI
+            console.log('Datos iniciales cargados exitosamente:', {
+                productos, metodosPago, ventas, gastosMeta
+            });
             inicializarAplicacion();
         } catch (error) {
-            alert('No se pudieron cargar los datos iniciales. Revisa la consola para más detalles.');
+            console.error('cargarDatosDesdeAPI: fallo en carga inicial:', error);
+            alert('No se pudieron cargar los datos iniciales. Revisa la consola para más detalles:\n' + error.message);
         }
     }
 
@@ -533,7 +570,7 @@
                     body: JSON.stringify({ id, ...producto })
                 });
                 const index = productos.findIndex(p => p.id == id);
-                productos[index] = actualizado;
+                if (index >= 0) productos[index] = actualizado;
             } else {
                 // Crear
                 const nuevo = await fetchAPI('/productos', {
@@ -541,17 +578,18 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(producto)
                 });
-                productos.push(nuevo);
+                if (nuevo) productos.push(nuevo);
             }
             cargarProductos();
             cancelarEdicionProducto();
         } catch (error) {
-            // Error manejado en fetchAPI
+            console.error('Error en formulario de producto:', error);
         }
     });
 
     function editarProducto(id) {
         const producto = productos.find(p => p.id === id);
+        if (!producto) return;
         document.getElementById('producto-id').value = producto.id;
         document.getElementById('producto-nombre').value = producto.nombre;
         document.getElementById('producto-precio').value = parseFloat(producto.precio);
@@ -573,7 +611,9 @@
                 productos = productos.filter(p => p.id !== id);
                 cargarProductos();
                 actualizarDashboard();
-            } catch (error) {}
+            } catch (error) {
+                console.error('Error eliminando producto:', error);
+            }
         }
     }
 
@@ -609,7 +649,7 @@
                     body: JSON.stringify({ id, ...metodo })
                 });
                 const index = metodosPago.findIndex(m => m.id == id);
-                metodosPago[index] = actualizado;
+                if (index >= 0) metodosPago[index] = actualizado;
             } else {
                 // Crear
                 const nuevo = await fetchAPI('/metodos-pago', {
@@ -617,15 +657,18 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(metodo)
                 });
-                metodosPago.push(nuevo);
+                if (nuevo) metodosPago.push(nuevo);
             }
             cargarMetodosPago();
             cancelarEdicionMetodo();
-        } catch (error) {}
+        } catch (error) {
+            console.error('Error en formulario de método de pago:', error);
+        }
     });
 
     function editarMetodo(id) {
         const metodo = metodosPago.find(m => m.id === id);
+        if (!metodo) return;
         document.getElementById('metodo-id').value = metodo.id;
         document.getElementById('metodo-nombre').value = metodo.nombre;
     }
@@ -645,7 +688,9 @@
                 });
                 metodosPago = metodosPago.filter(m => m.id !== id);
                 cargarMetodosPago();
-            } catch (error) {}
+            } catch (error) {
+                console.error('Error eliminando método de pago:', error);
+            }
         }
     }
 
@@ -683,20 +728,24 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(venta)
             });
-            // Agregamos localmente para no recargar todo
-            const producto = productos.find(p => p.id === nuevaVenta.producto_id);
-            const metodo = metodosPago.find(m => m.id === nuevaVenta.metodo_pago_id);
-            ventas.unshift({
-                ...nuevaVenta,
-                producto_nombre: producto ? producto.nombre : '',
-                metodo_pago_nombre: metodo ? metodo.nombre : ''
-            });
+            // Agregar localmente
+            if (nuevaVenta) {
+                const producto = productos.find(p => p.id === nuevaVenta.producto_id);
+                const metodo = metodosPago.find(m => m.id === nuevaVenta.metodo_pago_id);
+                ventas.unshift({
+                    ...nuevaVenta,
+                    producto_nombre: producto ? producto.nombre : '',
+                    metodo_pago_nombre: metodo ? metodo.nombre : ''
+                });
+            }
             cargarVentas();
             actualizarResumenVentas();
             actualizarDashboard();
             document.getElementById('venta-form').reset();
             document.getElementById('venta-fecha').value = new Date().toISOString().split('T')[0];
-        } catch (error) {}
+        } catch (error) {
+            console.error('Error registrando venta:', error);
+        }
     });
 
     async function eliminarVenta(id) {
@@ -711,7 +760,9 @@
                 cargarVentas();
                 actualizarResumenVentas();
                 actualizarDashboard();
-            } catch (error) {}
+            } catch (error) {
+                console.error('Error eliminando venta:', error);
+            }
         }
     }
 
@@ -748,12 +799,14 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(gasto)
             });
-            gastosMeta.unshift(nuevoGasto);
+            if (nuevoGasto) gastosMeta.unshift(nuevoGasto);
             cargarGastosMeta();
             actualizarResumenGastos();
             actualizarDashboard();
             document.getElementById('gasto-meta-form').reset();
-        } catch (error) {}
+        } catch (error) {
+            console.error('Error registrando gasto:', error);
+        }
     });
 
     async function eliminarGasto(id) {
@@ -768,7 +821,9 @@
                 cargarGastosMeta();
                 actualizarResumenGastos();
                 actualizarDashboard();
-            } catch (error) {}
+            } catch (error) {
+                console.error('Error eliminando gasto:', error);
+            }
         }
     }
 
@@ -810,7 +865,6 @@
         const hoy = new Date().toISOString().split('T')[0];
         // Semana: lunes como inicio
         const inicioSemana = new Date();
-        // Ajuste: restar (día de la semana - 1), si day=0(dom)=6
         const day = inicioSemana.getDay();
         const diff = (day === 0 ? 6 : day - 1);
         inicioSemana.setDate(inicioSemana.getDate() - diff);
@@ -825,7 +879,7 @@
         document.getElementById('ingresos-semana').textContent = formatearPesos(ventasSemana.reduce((sum, v) => sum + parseFloat(v.precio), 0));
     }
 
-    // Nueva: calcular gasto por fecha (si la fecha cae en el rango de la campaña, suma la parte proporcional)
+    // Calcular gasto por fecha (proporcional en caso de campañas que abarquen varios días)
     function calcularGastoPorFecha(fecha) {
         // fecha en formato 'YYYY-MM-DD'
         return gastosMeta.reduce((sum, g) => {
@@ -843,8 +897,8 @@
 
     function actualizarResumenGastos() {
         const hoyStr = new Date().toISOString().split('T')[0];
-        // Semana inicio (lunes)
         const hoyDate = new Date(hoyStr + 'T00:00:00');
+        // Semana inicio (lunes)
         const inicioSemana = new Date(hoyDate);
         const day = inicioSemana.getDay();
         const diff = (day === 0 ? 6 : day - 1);
@@ -855,19 +909,19 @@
         // Gasto hoy
         const gastoHoy = calcularGastoPorFecha(hoyStr);
 
-        // Gasto semana: recorrer días desde inicioSemana hasta hoy
+        // Gasto semana
         let gastoSemana = 0;
         for (let fecha = new Date(inicioSemana); fecha <= hoyDate; fecha.setDate(fecha.getDate() + 1)) {
             gastoSemana += calcularGastoPorFecha(fecha.toISOString().split('T')[0]);
         }
 
-        // Gasto mes: desde inicioMes hasta hoy
+        // Gasto mes
         let gastoMes = 0;
         for (let fecha = new Date(inicioMes); fecha <= hoyDate; fecha.setDate(fecha.getDate() + 1)) {
             gastoMes += calcularGastoPorFecha(fecha.toISOString().split('T')[0]);
         }
 
-        // Gasto total sumando montos completos (no proporcional)
+        // Gasto total (sumando montos completos)
         const gastoTotal = gastosMeta.reduce((sum, g) => sum + parseFloat(g.monto), 0);
 
         document.getElementById('gasto-hoy').textContent = formatearPesos(Math.round(gastoHoy));
@@ -877,14 +931,18 @@
     }
 
     function actualizarDashboard() {
+        // Asegurar que currentDateRangeData esté definido
+        if (!currentDateRangeData.startDate || !currentDateRangeData.endDate) {
+            updateDateRangeData('last7days');
+        }
         // Filtrar ventas por rango
         const ventasFiltradas = filtrarVentasPorRango();
 
-        // Calcular gastos en el rango: recorre día a día
+        // Calcular gastos en el rango día a día
         let totalGastos = 0;
-        if (currentDateRangeData.startDate && currentDateRangeData.endDate) {
-            const startDate = new Date(currentDateRangeData.startDate + 'T00:00:00');
-            const endDate = new Date(currentDateRangeData.endDate + 'T00:00:00');
+        const startDate = new Date(currentDateRangeData.startDate + 'T00:00:00');
+        const endDate = new Date(currentDateRangeData.endDate + 'T00:00:00');
+        if (startDate && endDate && startDate <= endDate) {
             for (let fecha = new Date(startDate); fecha <= endDate; fecha.setDate(fecha.getDate() + 1)) {
                 const fechaStr = fecha.toISOString().split('T')[0];
                 totalGastos += calcularGastoPorFecha(fechaStr);
@@ -901,7 +959,6 @@
         document.getElementById('total-gastos').textContent = formatearPesos(Math.round(totalGastos));
         document.getElementById('ganancia-neta').textContent = formatearPesos(gananciaNeta);
         document.getElementById('roi-percentage').textContent = roi === Infinity ? '∞%' : roi.toFixed(1) + '%';
-        // Ventas totales en rango
         document.getElementById('ventas-totales').textContent = ventasFiltradas.length + (ventasFiltradas.length === 1 ? ' venta' : ' ventas');
 
         actualizarGraficos();
@@ -912,9 +969,9 @@
         const fechas = [];
         const ventasData = [];
         const gastosData = [];
-        if (currentDateRangeData.startDate && currentDateRangeData.endDate) {
-            const inicio = new Date(currentDateRangeData.startDate + 'T00:00:00');
-            const fin = new Date(currentDateRangeData.endDate + 'T00:00:00');
+        const inicio = new Date(currentDateRangeData.startDate + 'T00:00:00');
+        const fin = new Date(currentDateRangeData.endDate + 'T00:00:00');
+        if (inicio && fin && inicio <= fin) {
             for (let fecha = new Date(inicio); fecha <= fin; fecha.setDate(fecha.getDate() + 1)) {
                 const fechaStr = fecha.toISOString().split('T')[0];
                 fechas.push(fecha.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }));
@@ -924,53 +981,61 @@
         }
 
         // Gráfico Ventas vs Gastos
-        if (charts.ventasGastos) charts.ventasGastos.destroy();
-        const ctxVentasGastos = document.getElementById('chartVentasGastos').getContext('2d');
-        charts.ventasGastos = new Chart(ctxVentasGastos, {
-            type: 'line',
-            data: {
-                labels: fechas,
-                datasets: [
-                    { label: 'Ventas', data: ventasData, borderColor: 'rgb(34, 197, 94)', backgroundColor: 'rgba(34, 197, 94, 0.1)', tension: 0.1 },
-                    { label: 'Gastos', data: gastosData, borderColor: 'rgb(239, 68, 68)', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.1 }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { callback: value => formatearPesos(value) }
-                    }
+        try {
+            if (charts.ventasGastos) charts.ventasGastos.destroy();
+            const ctxVentasGastos = document.getElementById('chartVentasGastos').getContext('2d');
+            charts.ventasGastos = new Chart(ctxVentasGastos, {
+                type: 'line',
+                data: {
+                    labels: fechas,
+                    datasets: [
+                        { label: 'Ventas', data: ventasData, borderColor: 'rgb(34, 197, 94)', backgroundColor: 'rgba(34, 197, 94, 0.1)', tension: 0.1 },
+                        { label: 'Gastos', data: gastosData, borderColor: 'rgb(239, 68, 68)', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.1 }
+                    ]
                 },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: context => `${context.dataset.label}: ${formatearPesos(context.parsed.y)}`
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: value => formatearPesos(value) }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: context => `${context.dataset.label}: ${formatearPesos(context.parsed.y)}`
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        } catch(e) {
+            console.error('Error al renderizar gráfico Ventas vs Gastos:', e);
+        }
 
         // Gráfico Productos Más Vendidos
-        const productosVendidos = {};
-        ventasFiltradas.forEach(venta => {
-            productosVendidos[venta.producto_nombre] = (productosVendidos[venta.producto_nombre] || 0) + 1;
-        });
-        const productosOrdenados = Object.entries(productosVendidos).sort(([, a], [, b]) => b - a).slice(0, 5);
-        if (charts.productos) charts.productos.destroy();
-        if (productosOrdenados.length > 0) {
-            const ctxProductos = document.getElementById('chartProductos').getContext('2d');
-            charts.productos = new Chart(ctxProductos, {
-                type: 'doughnut',
-                data: {
-                    labels: productosOrdenados.map(([nombre]) => nombre),
-                    datasets: [{ data: productosOrdenados.map(([, cant]) => cant), backgroundColor: ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6'] }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        try {
+            const productosVendidos = {};
+            ventasFiltradas.forEach(venta => {
+                productosVendidos[venta.producto_nombre] = (productosVendidos[venta.producto_nombre] || 0) + 1;
             });
+            const productosOrdenados = Object.entries(productosVendidos).sort(([, a], [, b]) => b - a).slice(0, 5);
+            if (charts.productos) charts.productos.destroy();
+            if (productosOrdenados.length > 0) {
+                const ctxProductos = document.getElementById('chartProductos').getContext('2d');
+                charts.productos = new Chart(ctxProductos, {
+                    type: 'doughnut',
+                    data: {
+                        labels: productosOrdenados.map(([nombre]) => nombre),
+                        datasets: [{ data: productosOrdenados.map(([, cant]) => cant), backgroundColor: ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6'] }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                });
+            }
+        } catch(e) {
+            console.error('Error al renderizar gráfico Productos Más Vendidos:', e);
         }
     }
 
