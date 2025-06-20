@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Contabilidad Digital v3.0 - Dashboard Avanzado</title>
+    <title>Sistema de Contabilidad Digital v3.1 - Dashboard Avanzado</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .tab-button.active { background-color: #3B82F6; color: white; }
+        .tab-button.active { 
+            background-color: #3B82F6; 
+            color: white;
+            border-bottom: 3px solid #2563EB;
+        }
         .chart-container { height: 400px; }
         .date-range-dropdown { display: none; position: absolute; z-index: 50; }
         .date-range-dropdown.active { display: block; }
@@ -23,34 +27,60 @@
             border-radius: 20px;
             font-size: 12px;
             transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         .sync-success { background-color: #10B981; color: white; }
         .sync-error { background-color: #EF4444; color: white; }
         .sync-syncing { background-color: #F59E0B; color: white; }
-         {
-            body { -webkit-print-color-adjust: exact; }
+        .kpi-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        }
+        .product-item, .method-item {
+            transition: background-color 0.2s ease;
+        }
+        .product-item:hover, .method-item:hover {
+            background-color: #f9fafb;
+        }
+        .print-hidden {
+            display: none;
+        }
+        @media print {
             .no-print { display: none !important; }
+            .print-visible { display: block !important; }
         }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <div id="sync-indicator" class="sync-indicator" style="display: none;">
-        <i class="fas fa-sync-alt mr-2"></i>
+        <i class="fas fa-sync-alt mr-2 animate-spin"></i>
         <span id="sync-text">Sincronizando...</span>
     </div>
 
     <div class="container mx-auto px-4 py-6">
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-800 mb-2">
-                        <i class="fas fa-chart-line text-blue-600 mr-3"></i>
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg shadow-md p-6 mb-6 text-white">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <h1 class="text-3xl font-bold mb-2">
+                        <i class="fas fa-chart-line mr-3"></i>
                         Sistema de Contabilidad Digital
                     </h1>
-                    <p class="text-gray-600">Gestión completa para productos digitales - WhatsApp & Meta Ads</p>
+                    <p class="opacity-90">Gestión completa para productos digitales - WhatsApp & Meta Ads</p>
                 </div>
-                <div class="text-right">
-                    <p class="text-gray-600">Datos en la nube <i class="fas fa-cloud text-blue-500"></i></p>
+                <div class="flex items-center space-x-3">
+                    <div>
+                        <p class="text-sm opacity-80">Datos en la nube <i class="fas fa-cloud ml-1"></i></p>
+                    </div>
+                    <div class="bg-white/20 rounded-full p-2">
+                        <button onclick="window.print()" class="text-white flex items-center">
+                            <i class="fas fa-print mr-1"></i>
+                            <span class="text-sm hidden md:inline">Imprimir</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -78,8 +108,8 @@
             </div>
 
             <div id="dashboard" class="tab-content active p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800">Dashboard Principal</h2>
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 md:mb-0">Dashboard Principal</h2>
                     
                     <div class="relative">
                         <button id="date-range-button" onclick="toggleDateRangeDropdown()" class="bg-white border border-gray-300 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center">
@@ -93,7 +123,15 @@
                                 <button onclick="selectDateRange('today')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Hoy</button>
                                 <button onclick="selectDateRange('yesterday')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Ayer</button>
                                 <button onclick="selectDateRange('last7days')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-blue-50">Últimos 7 días</button>
+                                <button onclick="selectDateRange('last14days')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Últimos 14 días</button>
+                                <button onclick="selectDateRange('last28days')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Últimos 28 días</button>
+                                <button onclick="selectDateRange('last30days')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Últimos 30 días</button>
+                                <hr class="my-1">
+                                <button onclick="selectDateRange('thisweek')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Esta semana</button>
+                                <button onclick="selectDateRange('lastweek')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">La semana pasada</button>
                                 <button onclick="selectDateRange('thismonth')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Este mes</button>
+                                <button onclick="selectDateRange('lastmonth')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">El mes pasado</button>
+                                <button onclick="selectDateRange('maximum')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Máximo</button>
                                 <hr class="my-1">
                                 <button onclick="selectDateRange('custom')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Personalizado</button>
                             </div>
@@ -123,8 +161,8 @@
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-gradient-to-r from-green-400 to-green-600 p-6 rounded-lg text-white">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="kpi-card bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-lg text-white">
                         <div class="flex items-center justify-between">
                             <div>
                                 <h3 class="text-lg font-semibold">Ingresos Totales</h3>
@@ -134,7 +172,7 @@
                         </div>
                     </div>
                     
-                    <div class="bg-gradient-to-r from-red-400 to-red-600 p-6 rounded-lg text-white">
+                    <div class="kpi-card bg-gradient-to-r from-red-500 to-red-600 p-6 rounded-lg text-white">
                         <div class="flex items-center justify-between">
                             <div>
                                 <h3 class="text-lg font-semibold">Gastos Totales</h3>
@@ -144,7 +182,7 @@
                         </div>
                     </div>
                     
-                    <div class="bg-gradient-to-r from-blue-400 to-blue-600 p-6 rounded-lg text-white">
+                    <div class="kpi-card bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg text-white">
                         <div class="flex items-center justify-between">
                             <div>
                                 <h3 class="text-lg font-semibold">Ganancia Neta</h3>
@@ -154,7 +192,7 @@
                         </div>
                     </div>
                     
-                    <div class="bg-gradient-to-r from-purple-400 to-purple-600 p-6 rounded-lg text-white">
+                    <div class="kpi-card bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-lg text-white">
                         <div class="flex items-center justify-between">
                             <div>
                                 <h3 class="text-lg font-semibold">ROI</h3>
@@ -180,10 +218,31 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold mb-4">Actividad Reciente</h3>
+                    <div id="actividad-reciente" class="space-y-3">
+                        <div class="flex items-center p-3 border-b">
+                            <div class="bg-blue-100 p-2 rounded-full mr-3">
+                                <i class="fas fa-info-circle text-blue-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">Sistema iniciado</p>
+                                <p class="text-sm text-gray-500">Comienza a registrar tus ventas y gastos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div id="productos" class="tab-content p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">Gestión de Productos</h2>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Gestión de Productos</h2>
+                    <button onclick="document.getElementById('producto-form').reset(); document.getElementById('producto-id').value = '';" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                        <i class="fas fa-plus mr-2"></i>Nuevo Producto
+                    </button>
+                </div>
+                
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-gray-50 p-6 rounded-lg">
                         <h3 class="text-lg font-semibold mb-4">Agregar/Editar Producto</h3>
@@ -198,22 +257,40 @@
                                 <input type="number" id="producto-precio" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                             </div>
                             <div class="flex space-x-2">
-                                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"><i class="fas fa-save mr-2"></i>Guardar</button>
-                                <button type="button" onclick="cancelarEdicionProducto()" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"><i class="fas fa-times mr-2"></i>Cancelar</button>
+                                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                                    <i class="fas fa-save mr-2"></i>Guardar
+                                </button>
+                                <button type="button" onclick="cancelarEdicionProducto()" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+                                    <i class="fas fa-times mr-2"></i>Cancelar
+                                </button>
                             </div>
                         </form>
                     </div>
+                    
                     <div class="bg-white rounded-lg shadow">
                         <div class="p-6">
-                            <h3 class="text-lg font-semibold mb-4">Productos Registrados</h3>
-                            <div id="productos-lista" class="space-y-3"></div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold">Productos Registrados</h3>
+                                <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                                    Total: <span id="total-productos">0</span>
+                                </span>
+                            </div>
+                            <div id="productos-lista" class="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                                <!-- Productos se cargarán aquí -->
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div id="metodos-pago" class="tab-content p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">Métodos de Pago</h2>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Métodos de Pago</h2>
+                    <button onclick="document.getElementById('metodo-pago-form').reset(); document.getElementById('metodo-id').value = '';" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                        <i class="fas fa-plus mr-2"></i>Nuevo Método
+                    </button>
+                </div>
+                
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-gray-50 p-6 rounded-lg">
                         <h3 class="text-lg font-semibold mb-4">Agregar/Editar Método de Pago</h3>
@@ -224,15 +301,27 @@
                                 <input type="text" id="metodo-nombre" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                             </div>
                             <div class="flex space-x-2">
-                                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"><i class="fas fa-save mr-2"></i>Guardar</button>
-                                <button type="button" onclick="cancelarEdicionMetodo()" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"><i class="fas fa-times mr-2"></i>Cancelar</button>
+                                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                                    <i class="fas fa-save mr-2"></i>Guardar
+                                </button>
+                                <button type="button" onclick="cancelarEdicionMetodo()" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+                                    <i class="fas fa-times mr-2"></i>Cancelar
+                                </button>
                             </div>
                         </form>
                     </div>
+                    
                     <div class="bg-white rounded-lg shadow">
                         <div class="p-6">
-                            <h3 class="text-lg font-semibold mb-4">Métodos Registrados</h3>
-                            <div id="metodos-lista" class="space-y-3"></div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold">Métodos Registrados</h3>
+                                <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                                    Total: <span id="total-metodos">0</span>
+                                </span>
+                            </div>
+                            <div id="metodos-lista" class="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                                <!-- Métodos se cargarán aquí -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -240,6 +329,7 @@
 
             <div id="ventas" class="tab-content p-6">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">Registro de Ventas</h2>
+                
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     <div class="bg-gray-50 p-6 rounded-lg">
                         <h3 class="text-lg font-semibold mb-4">Nueva Venta</h3>
@@ -264,34 +354,57 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Notas (opcional)</label>
                                 <textarea id="venta-notas" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3"></textarea>
                             </div>
-                            <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700"><i class="fas fa-plus mr-2"></i>Registrar Venta</button>
+                            <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
+                                <i class="fas fa-plus mr-2"></i>Registrar Venta
+                            </button>
                         </form>
                     </div>
+                    
                     <div class="bg-white p-6 rounded-lg shadow">
                         <h3 class="text-lg font-semibold mb-4">Resumen del Día</h3>
                         <div class="space-y-3">
-                            <div class="flex justify-between"><span>Ventas Hoy:</span><span id="ventas-hoy" class="font-semibold">0</span></div>
-                            <div class="flex justify-between"><span>Ingresos Hoy:</span><span id="ingresos-hoy" class="font-semibold">$0</span></div>
-                            <div class="flex justify-between"><span>Ventas Esta Semana:</span><span id="ventas-semana" class="font-semibold">0</span></div>
-                            <div class="flex justify-between"><span>Ingresos Esta Semana:</span><span id="ingresos-semana" class="font-semibold">$0</span></div>
+                            <div class="flex justify-between py-2 border-b">
+                                <span class="font-medium">Ventas Hoy:</span>
+                                <span id="ventas-hoy" class="font-semibold">0</span>
+                            </div>
+                            <div class="flex justify-between py-2 border-b">
+                                <span class="font-medium">Ingresos Hoy:</span>
+                                <span id="ingresos-hoy" class="font-semibold">$0</span>
+                            </div>
+                            <div class="flex justify-between py-2 border-b">
+                                <span class="font-medium">Ventas Esta Semana:</span>
+                                <span id="ventas-semana" class="font-semibold">0</span>
+                            </div>
+                            <div class="flex justify-between py-2">
+                                <span class="font-medium">Ingresos Esta Semana:</span>
+                                <span id="ingresos-semana" class="font-semibold">$0</span>
+                            </div>
                         </div>
                     </div>
                 </div>
+                
                 <div class="bg-white rounded-lg shadow">
                     <div class="p-6">
-                        <h3 class="text-lg font-semibold mb-4">Historial de Ventas</h3>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Historial de Ventas</h3>
+                            <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                                Total: <span id="total-ventas">0</span>
+                            </span>
+                        </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full table-auto">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Método Pago</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Método Pago</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody id="ventas-tabla" class="bg-white divide-y divide-gray-200"></tbody>
+                                <tbody id="ventas-tabla" class="bg-white divide-y divide-gray-200">
+                                    <!-- Ventas se cargarán aquí -->
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -300,13 +413,14 @@
 
             <div id="gastos-meta" class="tab-content p-6">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">Gastos Meta Ads</h2>
+                
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     <div class="bg-gray-50 p-6 rounded-lg">
                         <h3 class="text-lg font-semibold mb-4">Registrar Gasto Meta</h3>
                         <form id="gasto-meta-form">
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Nombre de la Campaña</label>
-                                <input type="text" id="gasto-campana" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <input type="text" id="gasto-campana" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                             </div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Inicio</label>
@@ -320,34 +434,57 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Monto Total (COP)</label>
                                 <input type="number" id="gasto-monto" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                             </div>
-                            <button type="submit" class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700"><i class="fas fa-plus mr-2"></i>Registrar Gasto</button>
+                            <button type="submit" class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700">
+                                <i class="fas fa-plus mr-2"></i>Registrar Gasto
+                            </button>
                         </form>
                     </div>
+                    
                     <div class="bg-white p-6 rounded-lg shadow">
                         <h3 class="text-lg font-semibold mb-4">Resumen de Gastos</h3>
                         <div class="space-y-3">
-                            <div class="flex justify-between"><span>Gasto Hoy:</span><span id="gasto-hoy" class="font-semibold text-red-600">$0</span></div>
-                            <div class="flex justify-between"><span>Gasto Esta Semana:</span><span id="gasto-semana" class="font-semibold text-red-600">$0</span></div>
-                            <div class="flex justify-between"><span>Gasto Este Mes:</span><span id="gasto-mes" class="font-semibold text-red-600">$0</span></div>
-                            <div class="flex justify-between"><span>Total de Gastos:</span><span id="gasto-total" class="font-semibold text-red-600">$0</span></div>
+                            <div class="flex justify-between py-2 border-b">
+                                <span class="font-medium">Gasto Hoy:</span>
+                                <span id="gasto-hoy" class="font-semibold text-red-600">$0</span>
+                            </div>
+                            <div class="flex justify-between py-2 border-b">
+                                <span class="font-medium">Gasto Esta Semana:</span>
+                                <span id="gasto-semana" class="font-semibold text-red-600">$0</span>
+                            </div>
+                            <div class="flex justify-between py-2 border-b">
+                                <span class="font-medium">Gasto Este Mes:</span>
+                                <span id="gasto-mes" class="font-semibold text-red-600">$0</span>
+                            </div>
+                            <div class="flex justify-between py-2">
+                                <span class="font-medium">Total de Gastos:</span>
+                                <span id="gasto-total" class="font-semibold text-red-600">$0</span>
+                            </div>
                         </div>
                     </div>
                 </div>
+                
                 <div class="bg-white rounded-lg shadow">
                     <div class="p-6">
-                        <h3 class="text-lg font-semibold mb-4">Historial de Gastos Meta</h3>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Historial de Gastos Meta</h3>
+                            <span class="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                                Total: <span id="total-gastos-meta">0</span>
+                            </span>
+                        </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full table-auto">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Campaña</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Inicio</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Fin</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaña</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Inicio</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Fin</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody id="gastos-tabla" class="bg-white divide-y divide-gray-200"></tbody>
+                                <tbody id="gastos-tabla" class="bg-white divide-y divide-gray-200">
+                                    <!-- Gastos se cargarán aquí -->
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -356,6 +493,7 @@
 
             <div id="reportes" class="tab-content p-6">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">Reportes y Análisis</h2>
+                
                 <div class="bg-gray-50 p-6 rounded-lg mb-6">
                     <h3 class="text-lg font-semibold mb-4">Filtros de Reporte</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -374,619 +512,1065 @@
                         </div>
                     </div>
                 </div>
+                
                 <div id="reporte-detallado" class="mt-6">
-                    <p class="text-gray-500">Selecciona un rango de fechas y genera el reporte para ver los detalles.</p>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <p class="text-gray-500 text-center py-10">Selecciona un rango de fechas y genera el reporte para ver los detalles.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-<script>
-    // URL base de la API (Vercel la manejará automáticamente)
-    const API_URL = '/api';
-
-    // Variables globales para almacenar los datos de la BD
-    let productos = [];
-    let metodosPago = [];
-    let ventas = [];
-    let gastosMeta = [];
-
-    let charts = {};
-    let currentDateRange = 'last7days';
-    let currentDateRangeData = {};
-
-    // --- NUEVO: Funciones de API ---
-
-    // Función genérica para hacer peticiones a la API
-    async function fetchAPI(endpoint, options = {}) {
-        const indicator = document.getElementById('sync-indicator');
-        const text = document.getElementById('sync-text');
+    <script>
+        // Variables globales
+        let productos = JSON.parse(localStorage.getItem('productos')) || [
+            {id: 1, nombre: 'Curso Crianza Consciente', precio: 97000},
+            {id: 2, nombre: 'Curso Finanzas Diarias', precio: 67000}
+        ];
         
-        indicator.className = 'sync-indicator sync-syncing';
-        text.textContent = 'Sincronizando...';
-        indicator.style.display = 'block';
-
-        try {
-            const response = await fetch(`${API_URL}${endpoint}`, options);
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `Error en la petición a ${endpoint}`);
-            }
-            
-            indicator.className = 'sync-indicator sync-success';
-            text.textContent = 'Sincronizado';
-            
-            if (response.status === 204) { // No Content
-                return null;
-            }
-            return response.json();
-        } catch (error) {
-            console.error(`Error en API: ${error.message}`);
-            indicator.className = 'sync-indicator sync-error';
-            text.textContent = 'Error de conexión';
-            alert(`Error de comunicación con el servidor: ${error.message}`);
-            throw error;
-        } finally {
-            setTimeout(() => {
-                indicator.style.display = 'none';
-            }, 2000);
-        }
-    }
-
-    // Función para cargar todos los datos iniciales desde la API
-    async function cargarDatosDesdeAPI() {
-        try {
-            // Usamos Promise.all para hacer las peticiones en paralelo
-            const [productosData, metodosPagoData, ventasData, gastosData] = await Promise.all([
-                fetchAPI('/productos'),
-                fetchAPI('/metodos-pago'),
-                fetchAPI('/ventas'),
-                fetchAPI('/gastos')
-            ]);
-            
-            productos = productosData;
-            metodosPago = metodosPagoData;
-            ventas = ventasData;
-            gastosMeta = gastosData;
-            
-            // Una vez cargados los datos, actualizamos toda la UI
-            inicializarAplicacion();
-        } catch (error) {
-            alert('No se pudieron cargar los datos iniciales. Revisa la consola para más detalles.');
-        }
-    }
-
-
-    // --- Funciones de la Aplicación (Modificadas) ---
-
-    function formatearPesos(cantidad) {
-        return '$' + (Number(cantidad) || 0).toLocaleString('es-CO');
-    }
-
-    function showTab(tabName) {
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(tabName).classList.add('active');
-        event.target.closest('.tab-button').classList.add('active');
+        let metodosPago = JSON.parse(localStorage.getItem('metodosPago')) || [
+            {id: 1, nombre: 'Transferencia Bancaria'},
+            {id: 2, nombre: 'PayPal'},
+            {id: 3, nombre: 'Nequi'},
+            {id: 4, nombre: 'Daviplata'}
+        ];
         
-        if (tabName === 'dashboard') {
-            actualizarDashboard();
+        let ventas = JSON.parse(localStorage.getItem('ventas')) || [];
+        let gastosMeta = JSON.parse(localStorage.getItem('gastosMeta')) || [];
+        
+        let charts = {};
+        let currentDateRange = 'last7days';
+        let currentDateRangeData = {};
+
+        // Función para formatear moneda colombiana
+        function formatearPesos(cantidad) {
+            const valor = Math.round(Number(cantidad)) || 0;
+            return '$' + valor.toLocaleString('es-CO');
         }
-    }
 
-    // Gestión de Productos
-    function cargarProductos() {
-        const lista = document.getElementById('productos-lista');
-        lista.innerHTML = '';
-        productos.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(producto => {
-            const div = document.createElement('div');
-            div.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
-            div.innerHTML = `
-                <div>
-                    <h4 class="font-semibold">${producto.nombre}</h4>
-                    <p class="text-gray-600">${formatearPesos(producto.precio)}</p>
-                </div>
-                <div class="space-x-2">
-                    <button onclick="editarProducto(${producto.id})" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button>
-                    <button onclick="eliminarProducto(${producto.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
-                </div>
-            `;
-            lista.appendChild(div);
-        });
-        cargarSelectProductos();
-    }
-
-    document.getElementById('producto-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const id = document.getElementById('producto-id').value;
-        const productoData = {
-            nombre: document.getElementById('producto-nombre').value,
-            precio: parseFloat(document.getElementById('producto-precio').value)
-        };
-
-        try {
-            if (id) {
-                const actualizado = await fetchAPI(`/productos`, {
-                    method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ id: parseInt(id), ...productoData })
-                });
-                const index = productos.findIndex(p => p.id == id);
-                productos[index] = actualizado;
-            } else {
-                const nuevo = await fetchAPI('/productos', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(productoData)
-                });
-                productos.push(nuevo);
-            }
-            cargarProductos();
-            cancelarEdicionProducto();
-        } catch (error) {}
-    });
-
-    function editarProducto(id) {
-        const producto = productos.find(p => p.id === id);
-        document.getElementById('producto-id').value = producto.id;
-        document.getElementById('producto-nombre').value = producto.nombre;
-        document.getElementById('producto-precio').value = parseFloat(producto.precio);
-    }
-
-    function cancelarEdicionProducto() {
-        document.getElementById('producto-form').reset();
-        document.getElementById('producto-id').value = '';
-    }
-
-    async function eliminarProducto(id) {
-        if (confirm('¿Estás seguro de eliminar este producto? Podría afectar registros de ventas existentes.')) {
-            try {
-                await fetchAPI(`/productos`, {
-                    method: 'DELETE',
-                     headers: {'Content-Type': 'application/json'},
-                     body: JSON.stringify({ id })
-                });
-                productos = productos.filter(p => p.id !== id);
-                cargarProductos();
-                actualizarDashboard();
-            } catch (error) {}
+        // Función para guardar datos
+        function guardarDatos() {
+            localStorage.setItem('productos', JSON.stringify(productos));
+            localStorage.setItem('metodosPago', JSON.stringify(metodosPago));
+            localStorage.setItem('ventas', JSON.stringify(ventas));
+            localStorage.setItem('gastosMeta', JSON.stringify(gastosMeta));
         }
-    }
 
-    // Gestión de Métodos de Pago
-    function cargarMetodosPago() {
-        const lista = document.getElementById('metodos-lista');
-        lista.innerHTML = '';
-        metodosPago.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(metodo => {
-            const div = document.createElement('div');
-            div.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
-            div.innerHTML = `
-                <div><h4 class="font-semibold">${metodo.nombre}</h4></div>
-                <div class="space-x-2">
-                    <button onclick="editarMetodo(${metodo.id})" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button>
-                    <button onclick="eliminarMetodo(${metodo.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
-                </div>
-            `;
-            lista.appendChild(div);
-        });
-        cargarSelectMetodosPago();
-    }
-
-    document.getElementById('metodo-pago-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const id = document.getElementById('metodo-id').value;
-        const metodoData = { nombre: document.getElementById('metodo-nombre').value };
-        try {
-            if (id) {
-                const actualizado = await fetchAPI(`/metodos-pago`, {
-                    method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ id: parseInt(id), ...metodoData })
-                });
-                const index = metodosPago.findIndex(m => m.id == id);
-                metodosPago[index] = actualizado;
-            } else {
-                const nuevo = await fetchAPI('/metodos-pago', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(metodoData)
-                });
-                metodosPago.push(nuevo);
-            }
-            cargarMetodosPago();
-            cancelarEdicionMetodo();
-        } catch (error) {}
-    });
-
-    function editarMetodo(id) {
-        const metodo = metodosPago.find(m => m.id === id);
-        document.getElementById('metodo-id').value = metodo.id;
-        document.getElementById('metodo-nombre').value = metodo.nombre;
-    }
-
-    function cancelarEdicionMetodo() {
-        document.getElementById('metodo-pago-form').reset();
-        document.getElementById('metodo-id').value = '';
-    }
-
-    async function eliminarMetodo(id) {
-        if (confirm('¿Estás seguro de eliminar este método de pago?')) {
-            try {
-                await fetchAPI(`/metodos-pago`, {
-                    method: 'DELETE',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ id })
-                });
-                metodosPago = metodosPago.filter(m => m.id !== id);
-                cargarMetodosPago();
-            } catch (error) {}
-        }
-    }
-
-    // Gestión de Ventas
-    function cargarVentas() {
-        const tabla = document.getElementById('ventas-tabla');
-        tabla.innerHTML = '';
-        ventas.forEach(venta => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${venta.fecha}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${venta.producto_nombre}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatearPesos(venta.precio)}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${venta.metodo_pago_nombre}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button onclick="eliminarVenta(${venta.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
-                </td>
-            `;
-            tabla.appendChild(tr);
-        });
-    }
-
-    document.getElementById('venta-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const ventaData = {
-            producto_id: parseInt(document.getElementById('venta-producto').value),
-            metodo_pago_id: parseInt(document.getElementById('venta-metodo-pago').value),
-            precio: parseFloat(document.getElementById('venta-precio').value),
-            fecha: document.getElementById('venta-fecha').value,
-            notas: document.getElementById('venta-notas').value
-        };
-        try {
-            const result = await fetchAPI('/ventas', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(ventaData)
+        // Función para mostrar tabs
+        function showTab(tabName) {
+            // Ocultar todos los tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
             });
-            const producto = productos.find(p => p.id === result.producto_id);
-            const metodo = metodosPago.find(m => m.id === result.metodo_pago_id);
-            const nuevaVentaConNombres = { ...result, producto_nombre: producto.nombre, metodo_pago_nombre: metodo.nombre };
             
-            ventas.unshift(nuevaVentaConNombres);
+            // Remover clase active de todos los botones
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
             
+            // Mostrar tab seleccionado
+            document.getElementById(tabName).classList.add('active');
+            
+            // Activar botón correspondiente
+            event.target.classList.add('active');
+            
+            // Actualizar datos específicos del tab
+            if (tabName === 'dashboard') {
+                actualizarDashboard();
+            } else if (tabName === 'productos') {
+                cargarProductos();
+            } else if (tabName === 'metodos-pago') {
+                cargarMetodosPago();
+            } else if (tabName === 'ventas') {
+                cargarSelectProductos();
+                cargarSelectMetodosPago();
+                cargarVentas();
+                actualizarResumenVentas();
+            } else if (tabName === 'gastos-meta') {
+                cargarGastosMeta();
+                actualizarResumenGastos();
+            }
+        }
+
+        // Gestión de Productos
+        function cargarProductos() {
+            const lista = document.getElementById('productos-lista');
+            lista.innerHTML = '';
+            
+            if (productos.length === 0) {
+                lista.innerHTML = `
+                    <div class="text-center py-10">
+                        <i class="fas fa-box-open text-gray-400 text-4xl mb-3"></i>
+                        <p class="text-gray-500">No hay productos registrados</p>
+                        <p class="text-sm text-gray-400 mt-2">Agrega tu primer producto usando el formulario</p>
+                    </div>
+                `;
+                document.getElementById('total-productos').textContent = '0';
+                return;
+            }
+            
+            productos.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(producto => {
+                const div = document.createElement('div');
+                div.className = 'product-item flex justify-between items-center p-3 bg-gray-100 rounded-lg';
+                div.innerHTML = `
+                    <div>
+                        <h4 class="font-semibold">${producto.nombre}</h4>
+                        <p class="text-gray-600">${formatearPesos(producto.precio)}</p>
+                    </div>
+                    <div class="space-x-2">
+                        <button onclick="editarProducto(${producto.id})" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="eliminarProducto(${producto.id})" class="text-red-600 hover:text-red-800">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                lista.appendChild(div);
+            });
+            
+            document.getElementById('total-productos').textContent = productos.length;
+        }
+
+        document.getElementById('producto-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('producto-id').value;
+            const nombre = document.getElementById('producto-nombre').value;
+            const precio = parseInt(document.getElementById('producto-precio').value);
+            
+            if (id) {
+                // Editar producto existente
+                const index = productos.findIndex(p => p.id == id);
+                productos[index] = {id: parseInt(id), nombre, precio};
+            } else {
+                // Agregar nuevo producto
+                const nuevoId = productos.length > 0 ? Math.max(...productos.map(p => p.id)) + 1 : 1;
+                productos.push({id: nuevoId, nombre, precio});
+            }
+            
+            guardarDatos();
+            cargarProductos();
+            cargarSelectProductos();
+            document.getElementById('producto-form').reset();
+            document.getElementById('producto-id').value = '';
+            
+            // Agregar a actividad reciente
+            agregarActividad(`Producto ${id ? 'actualizado' : 'agregado'}: ${nombre}`);
+        });
+
+        function editarProducto(id) {
+            const producto = productos.find(p => p.id === id);
+            document.getElementById('producto-id').value = producto.id;
+            document.getElementById('producto-nombre').value = producto.nombre;
+            document.getElementById('producto-precio').value = producto.precio;
+            
+            // Scroll al formulario
+            document.getElementById('producto-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function cancelarEdicionProducto() {
+            document.getElementById('producto-form').reset();
+            document.getElementById('producto-id').value = '';
+        }
+
+        function eliminarProducto(id) {
+            if (confirm('¿Estás seguro de eliminar este producto?')) {
+                const producto = productos.find(p => p.id === id);
+                productos = productos.filter(p => p.id !== id);
+                guardarDatos();
+                cargarProductos();
+                cargarSelectProductos();
+                
+                // Agregar a actividad reciente
+                agregarActividad(`Producto eliminado: ${producto.nombre}`);
+            }
+        }
+
+        // Gestión de Métodos de Pago
+        function cargarMetodosPago() {
+            const lista = document.getElementById('metodos-lista');
+            lista.innerHTML = '';
+            
+            if (metodosPago.length === 0) {
+                lista.innerHTML = `
+                    <div class="text-center py-10">
+                        <i class="fas fa-credit-card text-gray-400 text-4xl mb-3"></i>
+                        <p class="text-gray-500">No hay métodos de pago registrados</p>
+                        <p class="text-sm text-gray-400 mt-2">Agrega tu primer método usando el formulario</p>
+                    </div>
+                `;
+                document.getElementById('total-metodos').textContent = '0';
+                return;
+            }
+            
+            metodosPago.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(metodo => {
+                const div = document.createElement('div');
+                div.className = 'method-item flex justify-between items-center p-3 bg-gray-100 rounded-lg';
+                div.innerHTML = `
+                    <div>
+                        <h4 class="font-semibold">${metodo.nombre}</h4>
+                    </div>
+                    <div class="space-x-2">
+                        <button onclick="editarMetodo(${metodo.id})" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="eliminarMetodo(${metodo.id})" class="text-red-600 hover:text-red-800">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                lista.appendChild(div);
+            });
+            
+            document.getElementById('total-metodos').textContent = metodosPago.length;
+        }
+
+        document.getElementById('metodo-pago-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('metodo-id').value;
+            const nombre = document.getElementById('metodo-nombre').value;
+            
+            if (id) {
+                // Editar método existente
+                const index = metodosPago.findIndex(m => m.id == id);
+                metodosPago[index] = {id: parseInt(id), nombre};
+            } else {
+                // Agregar nuevo método
+                const nuevoId = metodosPago.length > 0 ? Math.max(...metodosPago.map(m => m.id)) + 1 : 1;
+                metodosPago.push({id: nuevoId, nombre});
+            }
+            
+            guardarDatos();
+            cargarMetodosPago();
+            cargarSelectMetodosPago();
+            document.getElementById('metodo-pago-form').reset();
+            document.getElementById('metodo-id').value = '';
+            
+            // Agregar a actividad reciente
+            agregarActividad(`Método de pago ${id ? 'actualizado' : 'agregado'}: ${nombre}`);
+        });
+
+        function editarMetodo(id) {
+            const metodo = metodosPago.find(m => m.id === id);
+            document.getElementById('metodo-id').value = metodo.id;
+            document.getElementById('metodo-nombre').value = metodo.nombre;
+            
+            // Scroll al formulario
+            document.getElementById('metodo-pago-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function cancelarEdicionMetodo() {
+            document.getElementById('metodo-pago-form').reset();
+            document.getElementById('metodo-id').value = '';
+        }
+
+        function eliminarMetodo(id) {
+            if (confirm('¿Estás seguro de eliminar este método de pago?')) {
+                const metodo = metodosPago.find(m => m.id === id);
+                metodosPago = metodosPago.filter(m => m.id !== id);
+                guardarDatos();
+                cargarMetodosPago();
+                cargarSelectMetodosPago();
+                
+                // Agregar a actividad reciente
+                agregarActividad(`Método de pago eliminado: ${metodo.nombre}`);
+            }
+        }
+
+        // Cargar selects
+        function cargarSelectProductos() {
+            const select = document.getElementById('venta-producto');
+            select.innerHTML = '<option value="">Seleccionar producto</option>';
+            
+            productos.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(producto => {
+                const option = document.createElement('option');
+                option.value = producto.id;
+                option.textContent = `${producto.nombre} - ${formatearPesos(producto.precio)}`;
+                option.dataset.precio = producto.precio;
+                select.appendChild(option);
+            });
+        }
+
+        function cargarSelectMetodosPago() {
+            const select = document.getElementById('venta-metodo-pago');
+            select.innerHTML = '<option value="">Seleccionar método</option>';
+            
+            metodosPago.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(metodo => {
+                const option = document.createElement('option');
+                option.value = metodo.id;
+                option.textContent = metodo.nombre;
+                select.appendChild(option);
+            });
+        }
+
+        // Auto-llenar precio cuando se selecciona producto
+        document.getElementById('venta-producto').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.dataset.precio) {
+                document.getElementById('venta-precio').value = selectedOption.dataset.precio;
+            }
+        });
+
+        // Gestión de Ventas
+        document.getElementById('venta-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const productoId = parseInt(document.getElementById('venta-producto').value);
+            const precio = parseInt(document.getElementById('venta-precio').value);
+            const metodoPagoId = parseInt(document.getElementById('venta-metodo-pago').value);
+            const fecha = document.getElementById('venta-fecha').value;
+            const notas = document.getElementById('venta-notas').value;
+            
+            const producto = productos.find(p => p.id === productoId);
+            const metodoPago = metodosPago.find(m => m.id === metodoPagoId);
+            
+            if (!producto || !metodoPago) {
+                alert('Por favor selecciona un producto y método de pago válidos');
+                return;
+            }
+            
+            const nuevaVenta = {
+                id: ventas.length > 0 ? Math.max(...ventas.map(v => v.id)) + 1 : 1,
+                producto: producto.nombre,
+                precio: precio,
+                metodoPago: metodoPago.nombre,
+                fecha: fecha,
+                notas: notas,
+                timestamp: new Date().toISOString()
+            };
+            
+            ventas.push(nuevaVenta);
+            guardarDatos();
             cargarVentas();
             actualizarResumenVentas();
             actualizarDashboard();
             document.getElementById('venta-form').reset();
+            
+            // Establecer fecha actual por defecto
             document.getElementById('venta-fecha').value = new Date().toISOString().split('T')[0];
-        } catch(error) {}
-    });
+            
+            // Agregar a actividad reciente
+            agregarActividad(`Venta registrada: ${producto.nombre} por ${formatearPesos(precio)}`);
+        });
 
-    async function eliminarVenta(id) {
-        if (confirm('¿Estás seguro de eliminar esta venta?')) {
-            try {
-                await fetchAPI('/ventas', {
-                    method: 'DELETE',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ id })
-                });
+        function cargarVentas() {
+            const tabla = document.getElementById('ventas-tabla');
+            tabla.innerHTML = '';
+            
+            if (ventas.length === 0) {
+                tabla.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                            No hay ventas registradas
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('total-ventas').textContent = '0';
+                return;
+            }
+            
+            // Ordenar ventas por fecha descendente
+            const ventasOrdenadas = [...ventas].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+            
+            ventasOrdenadas.forEach(venta => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${venta.fecha}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${venta.producto}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatearPesos(venta.precio)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${venta.metodoPago}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button onclick="eliminarVenta(${venta.id})" class="text-red-600 hover:text-red-800">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tabla.appendChild(tr);
+            });
+            
+            document.getElementById('total-ventas').textContent = ventas.length;
+        }
+
+        function eliminarVenta(id) {
+            if (confirm('¿Estás seguro de eliminar esta venta?')) {
+                const venta = ventas.find(v => v.id === id);
                 ventas = ventas.filter(v => v.id !== id);
+                guardarDatos();
                 cargarVentas();
                 actualizarResumenVentas();
                 actualizarDashboard();
-            } catch (error) {}
+                
+                // Agregar a actividad reciente
+                agregarActividad(`Venta eliminada: ${venta.producto} por ${formatearPesos(venta.precio)}`);
+            }
         }
-    }
 
-    // Gestión de Gastos
-    function cargarGastosMeta() {
-        const tabla = document.getElementById('gastos-tabla');
-        tabla.innerHTML = '';
-        gastosMeta.forEach(gasto => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gasto.campana}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gasto.fecha_inicio}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gasto.fecha_fin}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatearPesos(gasto.monto)}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button onclick="eliminarGasto(${gasto.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
-                </td>
-            `;
-            tabla.appendChild(tr);
-        });
-    }
+        function actualizarResumenVentas() {
+            const hoy = new Date().toISOString().split('T')[0];
+            const inicioSemana = new Date();
+            inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay());
+            const inicioSemanaStr = inicioSemana.toISOString().split('T')[0];
+            
+            const ventasHoy = ventas.filter(v => v.fecha === hoy);
+            const ventasSemana = ventas.filter(v => v.fecha >= inicioSemanaStr);
+            
+            document.getElementById('ventas-hoy').textContent = ventasHoy.length;
+            document.getElementById('ingresos-hoy').textContent = formatearPesos(ventasHoy.reduce((sum, v) => sum + v.precio, 0));
+            document.getElementById('ventas-semana').textContent = ventasSemana.length;
+            document.getElementById('ingresos-semana').textContent = formatearPesos(ventasSemana.reduce((sum, v) => sum + v.precio, 0));
+        }
 
-    document.getElementById('gasto-meta-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const gastoData = {
-            campana: document.getElementById('gasto-campana').value,
-            fecha_inicio: document.getElementById('gasto-fecha-inicio').value,
-            fecha_fin: document.getElementById('gasto-fecha-fin').value,
-            monto: parseFloat(document.getElementById('gasto-monto').value)
-        };
-        try {
-            const nuevoGasto = await fetchAPI('/gastos', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(gastoData)
-            });
-            gastosMeta.unshift(nuevoGasto);
+        // Gestión de Gastos Meta
+        document.getElementById('gasto-meta-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const campana = document.getElementById('gasto-campana').value;
+            const fechaInicio = document.getElementById('gasto-fecha-inicio').value;
+            const fechaFin = document.getElementById('gasto-fecha-fin').value;
+            const monto = parseInt(document.getElementById('gasto-monto').value);
+            
+            if (!fechaInicio || !fechaFin) {
+                alert('Por favor selecciona fechas válidas');
+                return;
+            }
+            
+            if (fechaInicio > fechaFin) {
+                alert('La fecha de inicio no puede ser mayor que la fecha de fin');
+                return;
+            }
+            
+            // Verificar si hay un gasto existente que se superponga con estas fechas
+            const gastoExistente = gastosMeta.find(g => 
+                (fechaInicio >= g.fecha_inicio && fechaInicio <= g.fecha_fin) ||
+                (fechaFin >= g.fecha_inicio && fechaFin <= g.fecha_fin) ||
+                (fechaInicio <= g.fecha_inicio && fechaFin >= g.fecha_fin)
+            );
+            
+            if (gastoExistente) {
+                if (confirm('Ya existe un gasto que se superpone con estas fechas. ¿Deseas actualizar el gasto existente?')) {
+                    // Actualizar gasto existente
+                    const index = gastosMeta.findIndex(g => g.id === gastoExistente.id);
+                    gastosMeta[index] = {
+                        id: gastoExistente.id,
+                        campana,
+                        fecha_inicio: fechaInicio,
+                        fecha_fin: fechaFin,
+                        monto,
+                        timestamp: new Date().toISOString()
+                    };
+                } else {
+                    return;
+                }
+            } else {
+                // Crear nuevo gasto
+                const nuevoGasto = {
+                    id: gastosMeta.length > 0 ? Math.max(...gastosMeta.map(g => g.id)) + 1 : 1,
+                    campana,
+                    fecha_inicio: fechaInicio,
+                    fecha_fin: fechaFin,
+                    monto,
+                    timestamp: new Date().toISOString()
+                };
+                
+                gastosMeta.push(nuevoGasto);
+            }
+            
+            guardarDatos();
             cargarGastosMeta();
             actualizarResumenGastos();
             actualizarDashboard();
             document.getElementById('gasto-meta-form').reset();
-        } catch (error) {}
-    });
+            
+            // Agregar a actividad reciente
+            agregarActividad(`Gasto Meta ${gastoExistente ? 'actualizado' : 'registrado'}: ${campana} - ${formatearPesos(monto)}`);
+        });
 
-    async function eliminarGasto(id) {
-        if (confirm('¿Estás seguro de eliminar este gasto?')) {
-            try {
-                await fetchAPI('/gastos', {
-                    method: 'DELETE',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ id })
-                });
+        function cargarGastosMeta() {
+            const tabla = document.getElementById('gastos-tabla');
+            tabla.innerHTML = '';
+            
+            if (gastosMeta.length === 0) {
+                tabla.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                            No hay gastos registrados
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('total-gastos-meta').textContent = '0';
+                return;
+            }
+            
+            // Ordenar gastos por fecha descendente
+            const gastosOrdenados = [...gastosMeta].sort((a, b) => new Date(b.fecha_inicio) - new Date(a.fecha_inicio));
+            
+            gastosOrdenados.forEach(gasto => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gasto.campana}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gasto.fecha_inicio}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gasto.fecha_fin}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatearPesos(gasto.monto)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button onclick="eliminarGasto(${gasto.id})" class="text-red-600 hover:text-red-800">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tabla.appendChild(tr);
+            });
+            
+            document.getElementById('total-gastos-meta').textContent = gastosMeta.length;
+        }
+
+        function eliminarGasto(id) {
+            if (confirm('¿Estás seguro de eliminar este gasto?')) {
+                const gasto = gastosMeta.find(g => g.id === id);
                 gastosMeta = gastosMeta.filter(g => g.id !== id);
+                guardarDatos();
                 cargarGastosMeta();
                 actualizarResumenGastos();
                 actualizarDashboard();
-            } catch (error) {}
-        }
-    }
-
-    function cargarSelectProductos() {
-        const select = document.getElementById('venta-producto');
-        select.innerHTML = '<option value="">Seleccionar producto</option>';
-        productos.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(p => {
-            const option = document.createElement('option');
-            option.value = p.id;
-            option.textContent = `${p.nombre} - ${formatearPesos(p.precio)}`;
-            option.dataset.precio = p.precio;
-            select.appendChild(option);
-        });
-    }
-
-    function cargarSelectMetodosPago() {
-        const select = document.getElementById('venta-metodo-pago');
-        select.innerHTML = '<option value="">Seleccionar método</option>';
-        metodosPago.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(m => {
-            const option = document.createElement('option');
-            option.value = m.id;
-            option.textContent = m.nombre;
-            select.appendChild(option);
-        });
-    }
-
-    document.getElementById('venta-producto').addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        if (selectedOption.dataset.precio) {
-            document.getElementById('venta-precio').value = parseFloat(selectedOption.dataset.precio);
-        }
-    });
-
-    function inicializarAplicacion() {
-        document.getElementById('venta-fecha').value = new Date().toISOString().split('T')[0];
-        document.getElementById('gasto-fecha-inicio').value = new Date().toISOString().split('T')[0];
-        document.getElementById('gasto-fecha-fin').value = new Date().toISOString().split('T')[0];
-        cargarProductos();
-        cargarMetodosPago();
-        cargarVentas();
-        cargarGastosMeta();
-        actualizarResumenVentas();
-        actualizarResumenGastos();
-        updateDateRangeData('last7days');
-        actualizarDashboard();
-    }
-
-    // --- Dashboard, Resúmenes y Gráficos ---
-    function actualizarResumenVentas() {
-        const hoy = new Date().toISOString().split('T')[0];
-        const inicioSemana = new Date();
-        inicioSemana.setDate(inicioSemana.getDate() - (inicioSemana.getDay() === 0 ? 6 : inicioSemana.getDay() - 1));
-        const inicioSemanaStr = inicioSemana.toISOString().split('T')[0];
-        
-        const ventasHoy = ventas.filter(v => v.fecha === hoy);
-        const ventasSemana = ventas.filter(v => v.fecha >= inicioSemanaStr);
-        
-        document.getElementById('ventas-hoy').textContent = ventasHoy.length;
-        document.getElementById('ingresos-hoy').textContent = formatearPesos(ventasHoy.reduce((sum, v) => sum + parseFloat(v.precio), 0));
-        document.getElementById('ventas-semana').textContent = ventasSemana.length;
-        document.getElementById('ingresos-semana').textContent = formatearPesos(ventasSemana.reduce((sum, v) => sum + parseFloat(v.precio), 0));
-    }
-
-    function calcularGastoPorFecha(fecha) {
-        return gastosMeta
-            .filter(g => fecha >= g.fecha_inicio && fecha <= g.fecha_fin)
-            .reduce((sum, g) => {
-                const dias = (new Date(g.fecha_fin) - new Date(g.fecha_inicio)) / (1000 * 60 * 60 * 24) + 1;
-                return sum + (parseFloat(g.monto) / dias);
-            }, 0);
-    }
-
-    function actualizarResumenGastos() {
-        const hoyStr = new Date().toISOString().split('T')[0];
-        const hoy = new Date(hoyStr + 'T00:00:00');
-        const semanaInicio = new Date(hoy);
-        semanaInicio.setDate(hoy.getDate() - (hoy.getDay() === 0 ? 6 : hoy.getDay() - 1));
-        const mesInicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-        
-        let gastoSemana = 0;
-        for (let fecha = new Date(semanaInicio); fecha <= hoy; fecha.setDate(fecha.getDate() + 1)) {
-            gastoSemana += calcularGastoPorFecha(fecha.toISOString().split('T')[0]);
-        }
-        
-        let gastoMes = 0;
-        for (let fecha = new Date(mesInicio); fecha <= hoy; fecha.setDate(fecha.getDate() + 1)) {
-            gastoMes += calcularGastoPorFecha(fecha.toISOString().split('T')[0]);
-        }
-        
-        document.getElementById('gasto-hoy').textContent = formatearPesos(calcularGastoPorFecha(hoyStr));
-        document.getElementById('gasto-semana').textContent = formatearPesos(gastoSemana);
-        document.getElementById('gasto-mes').textContent = formatearPesos(gastoMes);
-        document.getElementById('gasto-total').textContent = formatearPesos(gastosMeta.reduce((sum, g) => sum + parseFloat(g.monto), 0));
-    }
-    
-    function actualizarDashboard() {
-        const ventasFiltradas = filtrarVentasPorRango();
-        let totalGastos = 0;
-        const rangoInicio = new Date(currentDateRangeData.startDate + 'T00:00:00');
-        const rangoFin = new Date(currentDateRangeData.endDate + 'T00:00:00');
-
-        for (let fecha = new Date(rangoInicio); fecha <= rangoFin; fecha.setDate(fecha.getDate() + 1)) {
-            totalGastos += calcularGastoPorFecha(fecha.toISOString().split('T')[0]);
-        }
-
-        const totalIngresos = ventasFiltradas.reduce((sum, v) => sum + parseFloat(v.precio), 0);
-        const gananciaNeta = totalIngresos - totalGastos;
-        const roi = totalGastos > 0 ? ((gananciaNeta / totalGastos) * 100) : (totalIngresos > 0 ? Infinity : 0);
-
-        document.getElementById('total-ingresos').textContent = formatearPesos(totalIngresos);
-        document.getElementById('total-gastos').textContent = formatearPesos(totalGastos);
-        document.getElementById('ganancia-neta').textContent = formatearPesos(gananciaNeta);
-        document.getElementById('roi-percentage').textContent = roi === Infinity ? '∞%' : `${roi.toFixed(1)}%`;
-        
-        actualizarGraficos();
-    }
-    
-    function actualizarGraficos() {
-        const ventasFiltradas = filtrarVentasPorRango();
-        const fechas = [];
-        const ventasData = [];
-        const gastosData = [];
-        
-        if (currentDateRangeData.startDate && currentDateRangeData.endDate) {
-            const inicio = new Date(currentDateRangeData.startDate + 'T00:00:00');
-            const fin = new Date(currentDateRangeData.endDate + 'T00:00:00');
-            
-            for (let fecha = new Date(inicio); fecha <= fin; fecha.setDate(fecha.getDate() + 1)) {
-                const fechaStr = fecha.toISOString().split('T')[0];
-                fechas.push(fecha.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }));
-                ventasData.push(ventasFiltradas.filter(v => v.fecha === fechaStr).reduce((sum, v) => sum + parseFloat(v.precio), 0));
-                gastosData.push(calcularGastoPorFecha(fechaStr));
+                
+                // Agregar a actividad reciente
+                agregarActividad(`Gasto eliminado: ${gasto.campana} - ${formatearPesos(gasto.monto)}`);
             }
         }
-        
-        if (charts.ventasGastos) charts.ventasGastos.destroy();
-        charts.ventasGastos = new Chart(document.getElementById('chartVentasGastos').getContext('2d'), { type: 'line', data: { labels: fechas, datasets: [{ label: 'Ventas', data: ventasData, borderColor: 'rgb(34, 197, 94)', backgroundColor: 'rgba(34, 197, 94, 0.1)', tension: 0.1 }, { label: 'Gastos', data: gastosData, borderColor: 'rgb(239, 68, 68)', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: value => formatearPesos(value) } } }, plugins: { tooltip: { callbacks: { label: context => `${context.dataset.label}: ${formatearPesos(context.parsed.y)}` } } } } });
-        
-        const productosVendidos = ventasFiltradas.reduce((acc, venta) => {
-            acc[venta.producto_nombre] = (acc[venta.producto_nombre] || 0) + 1;
-            return acc;
-        }, {});
-        const productosOrdenados = Object.entries(productosVendidos).sort(([,a], [,b]) => b - a).slice(0, 5);
-        
-        if (charts.productos) charts.productos.destroy();
-        if (productosOrdenados.length > 0) {
-            charts.productos = new Chart(document.getElementById('chartProductos').getContext('2d'), { type: 'doughnut', data: { labels: productosOrdenados.map(([nombre]) => nombre), datasets: [{ data: productosOrdenados.map(([, cant]) => cant), backgroundColor: ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
-        } else {
-            document.getElementById('chartProductos').getContext('2d').clearRect(0, 0, 400, 400);
-        }
-    }
-    
-    function generarReporte() {
-        const fechaInicio = document.getElementById('reporte-fecha-inicio').value;
-        const fechaFin = document.getElementById('reporte-fecha-fin').value;
-        if (!fechaInicio || !fechaFin || fechaInicio > fechaFin) {
-            alert('Por favor selecciona un rango de fechas válido.');
-            return;
+
+        function calcularGastoPorFecha(fecha) {
+            return gastosMeta
+                .filter(g => fecha >= g.fecha_inicio && fecha <= g.fecha_fin)
+                .reduce((sum, g) => {
+                    const dias = (new Date(g.fecha_fin) - new Date(g.fecha_inicio)) / (1000 * 60 * 60 * 24) + 1;
+                    return sum + (g.monto / dias);
+                }, 0);
         }
 
-        const ventasReporte = ventas.filter(v => v.fecha >= fechaInicio && v.fecha <= fechaFin);
-        let gastosReporte = 0;
-        const rangoInicio = new Date(fechaInicio + 'T00:00:00');
-        const rangoFin = new Date(fechaFin + 'T00:00:00');
-
-        for (let fecha = new Date(rangoInicio); fecha <= rangoFin; fecha.setDate(fecha.getDate() + 1)) {
-            gastosReporte += calcularGastoPorFecha(fecha.toISOString().split('T')[0]);
+        function actualizarResumenGastos() {
+            const hoy = new Date().toISOString().split('T')[0];
+            const inicioSemana = new Date();
+            inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay());
+            const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+            
+            const gastoHoy = calcularGastoPorFecha(hoy);
+            
+            let gastoSemana = 0;
+            for (let i = 0; i < 7; i++) {
+                const fecha = new Date(inicioSemana);
+                fecha.setDate(fecha.getDate() + i);
+                gastoSemana += calcularGastoPorFecha(fecha.toISOString().split('T')[0]);
+            }
+            
+            let gastoMes = 0;
+            const diasEnMes = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+            for (let i = 1; i <= diasEnMes; i++) {
+                const fecha = new Date(new Date().getFullYear(), new Date().getMonth(), i).toISOString().split('T')[0];
+                gastoMes += calcularGastoPorFecha(fecha);
+            }
+            
+            const gastoTotal = gastosMeta.reduce((sum, g) => sum + g.monto, 0);
+            
+            document.getElementById('gasto-hoy').textContent = formatearPesos(Math.round(gastoHoy));
+            document.getElementById('gasto-semana').textContent = formatearPesos(Math.round(gastoSemana));
+            document.getElementById('gasto-mes').textContent = formatearPesos(Math.round(gastoMes));
+            document.getElementById('gasto-total').textContent = formatearPesos(gastoTotal);
         }
 
-        const ingresosReporte = ventasReporte.reduce((sum, v) => sum + parseFloat(v.precio), 0);
-        const ganancia = ingresosReporte - gastosReporte;
-        const roi = gastosReporte > 0 ? (ganancia / gastosReporte * 100) : (ingresosReporte > 0 ? Infinity : 0);
+        // Dashboard
+        function actualizarDashboard() {
+            const ventasFiltradas = filtrarVentasPorRango();
+            const gastosFiltrados = filtrarGastosPorRango();
+            
+            const totalIngresos = ventasFiltradas.reduce((sum, v) => sum + v.precio, 0);
+            const totalGastos = gastosFiltrados.reduce((sum, g) => sum + g.monto, 0);
+            const gananciaNeta = totalIngresos - totalGastos;
+            const roi = totalGastos > 0 ? ((gananciaNeta / totalGastos) * 100) : 0;
+            
+            document.getElementById('total-ingresos').textContent = formatearPesos(totalIngresos);
+            document.getElementById('total-gastos').textContent = formatearPesos(totalGastos);
+            document.getElementById('ganancia-neta').textContent = formatearPesos(gananciaNeta);
+            document.getElementById('roi-percentage').textContent = roi.toFixed(1) + '%';
+            
+            actualizarGraficos();
+        }
 
-        const reporteDiv = document.getElementById('reporte-detallado');
-        reporteDiv.innerHTML = `
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="bg-green-100 p-4 rounded-lg"><h4 class="font-semibold text-green-800">Ingresos</h4><p class="text-2xl font-bold text-green-600">${formatearPesos(ingresosReporte)}</p></div>
-                <div class="bg-red-100 p-4 rounded-lg"><h4 class="font-semibold text-red-800">Gastos</h4><p class="text-2xl font-bold text-red-600">${formatearPesos(gastosReporte)}</p></div>
-                <div class="bg-blue-100 p-4 rounded-lg"><h4 class="font-semibold text-blue-800">Ganancia</h4><p class="text-2xl font-bold text-blue-600">${formatearPesos(ganancia)}</p></div>
-                <div class="bg-purple-100 p-4 rounded-lg"><h4 class="font-semibold text-purple-800">ROI</h4><p class="text-2xl font-bold text-purple-600">${roi === Infinity ? '∞%' : `${roi.toFixed(1)}%`}</p></div>
-            </div>`;
-    }
+        function actualizarGraficos() {
+            const ventasFiltradas = filtrarVentasPorRango();
+            const gastosFiltrados = filtrarGastosPorRango();
+            
+            // Generar array de fechas para el período seleccionado
+            const fechas = [];
+            const ventasData = [];
+            const gastosData = [];
+            
+            if (currentDateRangeData.startDate && currentDateRangeData.endDate) {
+                const inicio = new Date(currentDateRangeData.startDate);
+                const fin = new Date(currentDateRangeData.endDate);
+                
+                // Determinar el intervalo basado en la cantidad de días
+                const diasTotal = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
+                let intervalo = 1; // días
+                
+                if (diasTotal > 30) {
+                    intervalo = Math.ceil(diasTotal / 30); // Mostrar máximo 30 puntos
+                }
+                
+                for (let fecha = new Date(inicio); fecha <= fin; fecha.setDate(fecha.getDate() + intervalo)) {
+                    const fechaStr = fecha.toISOString().split('T')[0];
+                    
+                    fechas.push(fecha.toLocaleDateString('es-CO', { 
+                        day: 'numeric', 
+                        month: 'short',
+                        ...(diasTotal > 365 ? { year: '2-digit' } : {})
+                    }));
+                    
+                    // Calcular ventas del período
+                    let ventasRango = 0;
+                    for (let i = 0; i < intervalo && new Date(fechaStr).getTime() + (i * 24 * 60 * 60 * 1000) <= fin.getTime(); i++) {
+                        const fechaCalculo = new Date(fecha.getTime() + (i * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+                        ventasRango += ventasFiltradas.filter(v => v.fecha === fechaCalculo).reduce((sum, v) => sum + v.precio, 0);
+                    }
+                    
+                    // Calcular gastos del período
+                    let gastosRango = 0;
+                    for (let i = 0; i < intervalo && new Date(fechaStr).getTime() + (i * 24 * 60 * 60 * 1000) <= fin.getTime(); i++) {
+                        const fechaCalculo = new Date(fecha.getTime() + (i * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+                        gastosRango += calcularGastoPorFecha(fechaCalculo);
+                    }
+                    
+                    ventasData.push(ventasRango);
+                    gastosData.push(Math.round(gastosRango));
+                }
+            }
+            
+            // Gráfico Ventas vs Gastos
+            if (charts.ventasGastos) {
+                charts.ventasGastos.destroy();
+            }
+            
+            const ctxVentasGastos = document.getElementById('chartVentasGastos').getContext('2d');
+            charts.ventasGastos = new Chart(ctxVentasGastos, {
+                type: 'line',
+                data: {
+                    labels: fechas,
+                    datasets: [{
+                        label: 'Ventas',
+                        data: ventasData,
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Gastos',
+                        data: gastosData,
+                        borderColor: 'rgb(239, 68, 68)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatearPesos(value);
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatearPesos(context.parsed.y);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico Productos Más Vendidos
+            const productosVendidos = {};
+            ventasFiltradas.forEach(venta => {
+                productosVendidos[venta.producto] = (productosVendidos[venta.producto] || 0) + 1;
+            });
+            
+            const productosOrdenados = Object.entries(productosVendidos)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 5);
+            
+            if (charts.productos) {
+                charts.productos.destroy();
+            }
+            
+            if (productosOrdenados.length > 0) {
+                const ctxProductos = document.getElementById('chartProductos').getContext('2d');
+                charts.productos = new Chart(ctxProductos, {
+                    type: 'doughnut',
+                    data: {
+                        labels: productosOrdenados.map(([nombre]) => nombre),
+                        datasets: [{
+                            data: productosOrdenados.map(([, cantidad]) => cantidad),
+                            backgroundColor: [
+                                '#3B82F6',
+                                '#EF4444',
+                                '#10B981',
+                                '#F59E0B',
+                                '#8B5CF6'
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    boxWidth: 15,
+                                    padding: 15
+                                }
+                            }
+                        }
+                    }
+                });
+            } else {
+                // Mostrar mensaje si no hay datos
+                const ctx = document.getElementById('chartProductos').getContext('2d');
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.fillStyle = '#9CA3AF';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font = '16px Arial';
+                ctx.fillText('No hay datos disponibles', ctx.canvas.width / 2, ctx.canvas.height / 2);
+            }
+        }
 
-    // Funciones de Rango de Fechas
-    function toggleDateRangeDropdown() { document.getElementById('date-range-dropdown').classList.toggle('active'); }
-    function closeCustomDateModal() { document.getElementById('custom-date-modal').classList.add('hidden'); }
+        // Funciones del selector de rango de fechas
+        function toggleDateRangeDropdown() {
+            const dropdown = document.getElementById('date-range-dropdown');
+            dropdown.classList.toggle('active');
+        }
 
-    function selectDateRange(range) {
-        currentDateRange = range;
-        if (range === 'custom') {
-            document.getElementById('custom-date-modal').classList.remove('hidden');
-        } else {
+        function selectDateRange(range) {
+            currentDateRange = range;
             updateDateRangeData(range);
+            toggleDateRangeDropdown();
+            
+            // Actualizar dashboard con el nuevo rango
             actualizarDashboard();
         }
-        toggleDateRangeDropdown();
-    }
 
-    function applyCustomDateRange() {
-        const startDate = document.getElementById('custom-start-date').value;
-        const endDate = document.getElementById('custom-end-date').value;
-        if (!startDate || !endDate || startDate > endDate) { alert('Selecciona un rango de fechas válido.'); return; }
-        currentDateRangeData = { startDate, endDate, label: `${startDate.split('-')[2]}/${startDate.split('-')[1]} - ${endDate.split('-')[2]}/${endDate.split('-')[1]}` };
-        document.getElementById('selected-range-text').textContent = currentDateRangeData.label;
-        closeCustomDateModal();
-        actualizarDashboard();
-    }
-
-    function updateDateRangeData(range) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        let startDate, endDate = new Date(today), label;
-
-        switch(range) {
-            case 'today': startDate = new Date(today); label = 'Hoy'; break;
-            case 'yesterday': startDate = new Date(today); startDate.setDate(today.getDate() - 1); endDate = new Date(startDate); label = 'Ayer'; break;
-            case 'last7days': startDate = new Date(today); startDate.setDate(today.getDate() - 6); label = 'Últimos 7 días'; break;
-            case 'thismonth': startDate = new Date(today.getFullYear(), today.getMonth(), 1); label = 'Este mes'; break;
-            default: startDate = new Date(today); startDate.setDate(today.getDate() - 6); label = 'Últimos 7 días'; break;
+        function updateDateRangeData(range) {
+            const today = new Date();
+            let startDate, endDate, label;
+            
+            switch(range) {
+                case 'today':
+                    startDate = endDate = new Date(today);
+                    label = 'Hoy';
+                    break;
+                case 'yesterday':
+                    startDate = endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+                    label = 'Ayer';
+                    break;
+                case 'last7days':
+                    startDate = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
+                    endDate = new Date(today);
+                    label = 'Últimos 7 días';
+                    break;
+                case 'last14days':
+                    startDate = new Date(today.getTime() - 13 * 24 * 60 * 60 * 1000);
+                    endDate = new Date(today);
+                    label = 'Últimos 14 días';
+                    break;
+                case 'last28days':
+                    startDate = new Date(today.getTime() - 27 * 24 * 60 * 60 * 1000);
+                    endDate = new Date(today);
+                    label = 'Últimos 28 días';
+                    break;
+                case 'last30days':
+                    startDate = new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000);
+                    endDate = new Date(today);
+                    label = 'Últimos 30 días';
+                    break;
+                case 'thisweek':
+                    const startOfWeek = new Date(today);
+                    startOfWeek.setDate(today.getDate() - today.getDay());
+                    startDate = startOfWeek;
+                    endDate = new Date(today);
+                    label = 'Esta semana';
+                    break;
+                case 'lastweek':
+                    const lastWeekStart = new Date(today);
+                    lastWeekStart.setDate(today.getDate() - today.getDay() - 7);
+                    const lastWeekEnd = new Date(lastWeekStart);
+                    lastWeekEnd.setDate(lastWeekStart.getDate() + 6);
+                    startDate = lastWeekStart;
+                    endDate = lastWeekEnd;
+                    label = 'La semana pasada';
+                    break;
+                case 'thismonth':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    endDate = new Date(today);
+                    label = 'Este mes';
+                    break;
+                case 'lastmonth':
+                    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                    const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+                    startDate = lastMonth;
+                    endDate = lastMonthEnd;
+                    label = 'El mes pasado';
+                    break;
+                case 'maximum':
+                    if (ventas.length > 0) {
+                        const fechas = ventas.map(v => new Date(v.fecha));
+                        startDate = new Date(Math.min(...fechas));
+                        endDate = new Date(Math.max(...fechas));
+                    } else {
+                        startDate = endDate = new Date(today);
+                    }
+                    label = 'Máximo';
+                    break;
+                case 'custom':
+                    document.getElementById('custom-date-modal').classList.remove('hidden');
+                    return;
+            }
+            
+            currentDateRangeData = {
+                startDate: startDate.toISOString().split('T')[0],
+                endDate: endDate.toISOString().split('T')[0],
+                label: label
+            };
+            
+            document.getElementById('selected-range-text').textContent = label;
         }
-        currentDateRangeData = { startDate: startDate.toISOString().split('T')[0], endDate: endDate.toISOString().split('T')[0], label };
-        document.getElementById('selected-range-text').textContent = label;
-    }
 
-   function filtrarVentasPorRango() {
-    if (!currentDateRangeData.startDate) return ventas;
-    return ventas.filter(v => {
-        // CORRECCIÓN: Extraemos solo la parte de la fecha (YYYY-MM-DD) de la venta, ignorando la hora.
-        const fechaVenta = v.fecha.split('T')[0];
-        return fechaVenta >= currentDateRangeData.startDate && 
-               fechaVenta <= currentDateRangeData.endDate;
-    });
-}
-   
-    
-    document.addEventListener('click', function(event) {
-        const dropdown = document.getElementById('date-range-dropdown');
-        const button = document.getElementById('date-range-button');
-        if (dropdown && button && !dropdown.contains(event.target) && !button.contains(event.target)) {
-            dropdown.classList.remove('active');
+        function closeCustomDateModal() {
+            document.getElementById('custom-date-modal').classList.add('hidden');
         }
-    });
 
-    // Inicialización al cargar la página
-    document.addEventListener('DOMContentLoaded', cargarDatosDesdeAPI);
-</script>
+        function applyCustomDateRange() {
+            const startDate = document.getElementById('custom-start-date').value;
+            const endDate = document.getElementById('custom-end-date').value;
+            
+            if (!startDate || !endDate) {
+                alert('Por favor selecciona ambas fechas');
+                return;
+            }
+            
+            if (startDate > endDate) {
+                alert('La fecha de inicio no puede ser mayor que la fecha de fin');
+                return;
+            }
+            
+            currentDateRangeData = {
+                startDate: startDate,
+                endDate: endDate,
+                label: `${startDate} - ${endDate}`
+            };
+            
+            document.getElementById('selected-range-text').textContent = currentDateRangeData.label;
+            closeCustomDateModal();
+            actualizarDashboard();
+        }
 
+        // Filtrar datos por rango de fechas
+        function filtrarVentasPorRango() {
+            if (!currentDateRangeData.startDate || !currentDateRangeData.endDate) {
+                return ventas;
+            }
+            
+            return ventas.filter(venta => 
+                venta.fecha >= currentDateRangeData.startDate && 
+                venta.fecha <= currentDateRangeData.endDate
+            );
+        }
+
+        function filtrarGastosPorRango() {
+            if (!currentDateRangeData.startDate || !currentDateRangeData.endDate) {
+                return gastosMeta;
+            }
+            
+            return gastosMeta.filter(gasto => 
+                (gasto.fecha_inicio <= currentDateRangeData.endDate && 
+                 gasto.fecha_fin >= currentDateRangeData.startDate)
+            );
+        }
+
+        // Reportes
+        function generarReporte() {
+            const fechaInicio = document.getElementById('reporte-fecha-inicio').value;
+            const fechaFin = document.getElementById('reporte-fecha-fin').value;
+            
+            if (!fechaInicio || !fechaFin) {
+                alert('Por favor selecciona un rango de fechas');
+                return;
+            }
+            
+            const ventasFiltradas = ventas.filter(v => v.fecha >= fechaInicio && v.fecha <= fechaFin);
+            const gastosFiltrados = gastosMeta.filter(g => 
+                (g.fecha_inicio <= fechaFin && g.fecha_fin >= fechaInicio)
+            );
+            
+            const totalVentas = ventasFiltradas.reduce((sum, v) => sum + v.precio, 0);
+            const totalGastos = gastosFiltrados.reduce((sum, g) => sum + g.monto, 0);
+            const ganancia = totalVentas - totalGastos;
+            const roi = totalGastos > 0 ? (ganancia / totalGastos * 100) : 0;
+            
+            const reporteDiv = document.getElementById('reporte-detallado');
+            reporteDiv.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-green-100 p-4 rounded-lg">
+                        <h4 class="font-semibold text-green-800">Ingresos</h4>
+                        <p class="text-2xl font-bold text-green-600">${formatearPesos(totalVentas)}</p>
+                    </div>
+                    <div class="bg-red-100 p-4 rounded-lg">
+                        <h4 class="font-semibold text-red-800">Gastos</h4>
+                        <p class="text-2xl font-bold text-red-600">${formatearPesos(totalGastos)}</p>
+                    </div>
+                    <div class="bg-blue-100 p-4 rounded-lg">
+                        <h4 class="font-semibold text-blue-800">Ganancia</h4>
+                        <p class="text-2xl font-bold text-blue-600">${formatearPesos(ganancia)}</p>
+                    </div>
+                    <div class="bg-purple-100 p-4 rounded-lg">
+                        <h4 class="font-semibold text-purple-800">ROI</h4>
+                        <p class="text-2xl font-bold text-purple-600">${roi.toFixed(1)}%</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold mb-3">Ventas en el Período</h4>
+                        <div class="bg-white rounded-lg shadow overflow-hidden">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    ${ventasFiltradas.length > 0 ? 
+                                        ventasFiltradas.map(v => `
+                                            <tr>
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">${v.fecha}</td>
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">${v.producto}</td>
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">${formatearPesos(v.precio)}</td>
+                                            </tr>
+                                        `).join('') : 
+                                        `<tr><td colspan="3" class="px-4 py-4 text-center text-gray-500">No hay ventas en este período</td></tr>`
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold mb-3">Gastos en el Período</h4>
+                        <div class="bg-white rounded-lg shadow overflow-hidden">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaña</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periodo</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    ${gastosFiltrados.length > 0 ? 
+                                        gastosFiltrados.map(g => `
+                                            <tr>
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">${g.campana}</td>
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">${g.fecha_inicio} a ${g.fecha_fin}</td>
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">${formatearPesos(g.monto)}</td>
+                                            </tr>
+                                        `).join('') : 
+                                        `<tr><td colspan="3" class="px-4 py-4 text-center text-gray-500">No hay gastos en este período</td></tr>`
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end">
+                    <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                        <i class="fas fa-print mr-2"></i>Imprimir Reporte
+                    </button>
+                </div>
+            `;
+        }
+
+        // Agregar actividad reciente
+        function agregarActividad(texto) {
+            const actividadDiv = document.getElementById('actividad-reciente');
+            const fecha = new Date().toLocaleTimeString('es-CO');
+            
+            const actividad = document.createElement('div');
+            actividad.className = 'flex items-center p-3 border-b';
+            actividad.innerHTML = `
+                <div class="bg-blue-100 p-2 rounded-full mr-3">
+                    <i class="fas fa-info-circle text-blue-600"></i>
+                </div>
+                <div>
+                    <p class="font-medium">${texto}</p>
+                    <p class="text-sm text-gray-500">${fecha}</p>
+                </div>
+            `;
+            
+            actividadDiv.insertBefore(actividad, actividadDiv.firstChild);
+            
+            // Mantener solo las últimas 5 actividades
+            if (actividadDiv.children.length > 5) {
+                actividadDiv.removeChild(actividadDiv.lastChild);
+            }
+        }
+
+        // Cerrar dropdown cuando se hace clic fuera
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('date-range-dropdown');
+            const button = document.getElementById('date-range-button');
+            
+            if (dropdown && button && !dropdown.contains(event.target) && !button.contains(event.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            // Establecer fecha actual por defecto
+            document.getElementById('venta-fecha').value = new Date().toISOString().split('T')[0];
+            document.getElementById('gasto-fecha-inicio').value = new Date().toISOString().split('T')[0];
+            document.getElementById('gasto-fecha-fin').value = new Date().toISOString().split('T')[0];
+            
+            // Establecer rango de fechas por defecto
+            updateDateRangeData('last7days');
+            
+            // Cargar datos iniciales
+            cargarProductos();
+            cargarMetodosPago();
+            cargarSelectProductos();
+            cargarSelectMetodosPago();
+            cargarVentas();
+            cargarGastosMeta();
+            actualizarResumenVentas();
+            actualizarResumenGastos();
+            actualizarDashboard();
+            
+            // Agregar actividad inicial
+            agregarActividad('Sistema de contabilidad iniciado');
+        });
+    </script>
 </body>
 </html>
