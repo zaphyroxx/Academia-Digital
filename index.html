@@ -716,16 +716,32 @@
         document.getElementById('ventas-semana').textContent = ventasSemana.length;
         document.getElementById('ingresos-semana').textContent = formatearPesos(ventasSemana.reduce((sum, v) => sum + parseFloat(v.precio), 0));
     }
-
-    // CORREGIDO: Cálculo de gastos más preciso
+    
+    // CORRECCIÓN FINAL: Cálculo de gastos y filtro robusto
     function calcularGastoPorFecha(fecha) {
         return gastosMeta
-            .filter(g => fecha >= g.fecha_inicio && fecha <= g.fecha_fin)
+            .filter(g => {
+                // Se compara solo la parte YYYY-MM-DD para evitar errores de zona horaria/formato
+                const inicio = g.fecha_inicio.split('T')[0];
+                const fin = g.fecha_fin.split('T')[0];
+                return fecha >= inicio && fecha <= fin;
+            })
             .reduce((sum, g) => {
-                const startDate = new Date(g.fecha_inicio + 'T00:00:00');
-                const endDate = new Date(g.fecha_fin + 'T00:00:00');
-                const dias = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
-                return sum + (parseFloat(g.monto) / dias);
+                // Se usan las fechas originales para el cálculo de días, que ya son precisas
+                const startDate = new Date(g.fecha_inicio);
+                const endDate = new Date(g.fecha_fin);
+
+                // Verificación para evitar fechas inválidas
+                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                    return sum;
+                }
+
+                const dias = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                
+                if (dias > 0) {
+                    return sum + (parseFloat(g.monto) / dias);
+                }
+                return sum;
             }, 0);
     }
 
@@ -749,7 +765,6 @@
         document.getElementById('gasto-total').textContent = formatearPesos(gastosMeta.reduce((sum, g) => sum + parseFloat(g.monto), 0));
     }
     
-    // CORREGIDO: Añadido contador de ventas y cálculo de gastos
     function actualizarDashboard() {
         const ventasFiltradas = filtrarVentasPorRango();
         let totalGastos = 0;
@@ -765,7 +780,7 @@
         const roi = totalGastos > 0 ? ((gananciaNeta / totalGastos) * 100) : (totalIngresos > 0 ? Infinity : 0);
 
         document.getElementById('total-ingresos').textContent = formatearPesos(totalIngresos);
-        document.getElementById('total-ventas').textContent = ventasFiltradas.length; // NUEVO
+        document.getElementById('total-ventas').textContent = ventasFiltradas.length;
         document.getElementById('total-gastos').textContent = formatearPesos(totalGastos);
         document.getElementById('ganancia-neta').textContent = formatearPesos(gananciaNeta);
         document.getElementById('roi-percentage').textContent = roi === Infinity ? '∞%' : `${roi.toFixed(1)}%`;
@@ -844,7 +859,7 @@
         });
     }
 
-    // Funciones de Rango de Fechas (sin cambios mayores)
+    // Funciones de Rango de Fechas
     function toggleDateRangeDropdown() { document.getElementById('date-range-dropdown').classList.toggle('active'); }
     function closeCustomDateModal() { document.getElementById('custom-date-modal').classList.add('hidden'); }
     function selectDateRange(range) {
