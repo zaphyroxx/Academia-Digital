@@ -1,14 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Contabilidad Digital v3.0 - Dashboard Avanzado</title>
-    <!-- Tailwind CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css"/>
-    <!-- Chart.js -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .tab-content { display: none; }
@@ -17,10 +14,10 @@
         .chart-container { height: 400px; }
         .date-range-dropdown { display: none; position: absolute; z-index: 50; }
         .date-range-dropdown.active { display: block; }
-        .sync-indicator {
-            position: fixed;
-            top: 20px;
-            right: 20px;
+        .sync-indicator { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
             z-index: 100;
             padding: 8px 16px;
             border-radius: 20px;
@@ -30,21 +27,19 @@
         .sync-success { background-color: #10B981; color: white; }
         .sync-error { background-color: #EF4444; color: white; }
         .sync-syncing { background-color: #F59E0B; color: white; }
-        {
+         {
             body { -webkit-print-color-adjust: exact; }
             .no-print { display: none !important; }
         }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <!-- Indicador de sincronización -->
     <div id="sync-indicator" class="sync-indicator" style="display: none;">
         <i class="fas fa-sync-alt mr-2"></i>
         <span id="sync-text">Sincronizando...</span>
     </div>
 
     <div class="container mx-auto px-4 py-6">
-        <!-- Header -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <div class="flex justify-between items-center">
                 <div>
@@ -60,7 +55,6 @@
             </div>
         </div>
 
-        <!-- Pestañas -->
         <div class="bg-white rounded-lg shadow-md mb-6">
             <div class="flex flex-wrap border-b">
                 <button class="tab-button px-6 py-3 font-medium text-gray-600 hover:text-blue-600 active" onclick="showTab('dashboard')">
@@ -83,30 +77,30 @@
                 </button>
             </div>
 
-            <!-- Dashboard -->
             <div id="dashboard" class="tab-content active p-6">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-gray-800">Dashboard Principal</h2>
+                    
                     <div class="relative">
                         <button id="date-range-button" onclick="toggleDateRangeDropdown()" class="bg-white border border-gray-300 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center">
                             <i class="fas fa-calendar-alt mr-2"></i>
                             <span id="selected-range-text">Últimos 7 días</span>
                             <i class="fas fa-chevron-down ml-2"></i>
                         </button>
+                        
                         <div id="date-range-dropdown" class="date-range-dropdown absolute right-0 mt-2 w-64 bg-white border border-gray-300 rounded-md shadow-lg">
                             <div class="py-1">
                                 <button onclick="selectDateRange('today')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Hoy</button>
                                 <button onclick="selectDateRange('yesterday')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Ayer</button>
                                 <button onclick="selectDateRange('last7days')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-blue-50">Últimos 7 días</button>
                                 <button onclick="selectDateRange('thismonth')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Este mes</button>
-                                <hr class="my-1"/>
+                                <hr class="my-1">
                                 <button onclick="selectDateRange('custom')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Personalizado</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Modal personalizado -->
                 <div id="custom-date-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
                     <div class="flex items-center justify-center min-h-screen">
                         <div class="bg-white rounded-lg p-6 w-96">
@@ -114,11 +108,11 @@
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Inicio</label>
-                                    <input type="date" id="custom-start-date" class="w-full px-3 py-2 border border-gray-300 rounded-md"/>
+                                    <input type="date" id="custom-start-date" class="w-full px-3 py-2 border border-gray-300 rounded-md">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Fin</label>
-                                    <input type="date" id="custom-end-date" class="w-full px-3 py-2 border border-gray-300 rounded-md"/>
+                                    <input type="date" id="custom-end-date" class="w-full px-3 py-2 border border-gray-300 rounded-md">
                                 </div>
                                 <div class="flex justify-end space-x-3">
                                     <button onclick="closeCustomDateModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
@@ -128,27 +122,38 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Indicadores -->
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+                
+                <div class="grid grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                     <div class="bg-gradient-to-r from-green-400 to-green-600 p-6 rounded-lg text-white">
                         <div class="flex items-center justify-between">
                             <div>
-                                <h3 class="text-lg font-semibold">Ingresos Totales</h3>
+                                <h3 class="text-lg font-semibold">Ingresos</h3>
                                 <p class="text-2xl font-bold" id="total-ingresos">$0</p>
                             </div>
                             <i class="fas fa-dollar-sign text-3xl opacity-80"></i>
                         </div>
                     </div>
+
+                    <div class="bg-gradient-to-r from-yellow-400 to-yellow-600 p-6 rounded-lg text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold">Nº de Ventas</h3>
+                                <p class="text-2xl font-bold" id="total-ventas">0</p>
+                            </div>
+                            <i class="fas fa-tag text-3xl opacity-80"></i>
+                        </div>
+                    </div>
+                    
                     <div class="bg-gradient-to-r from-red-400 to-red-600 p-6 rounded-lg text-white">
                         <div class="flex items-center justify-between">
                             <div>
-                                <h3 class="text-lg font-semibold">Gastos Totales</h3>
+                                <h3 class="text-lg font-semibold">Gastos</h3>
                                 <p class="text-2xl font-bold" id="total-gastos">$0</p>
                             </div>
                             <i class="fas fa-credit-card text-3xl opacity-80"></i>
                         </div>
                     </div>
+                    
                     <div class="bg-gradient-to-r from-blue-400 to-blue-600 p-6 rounded-lg text-white">
                         <div class="flex items-center justify-between">
                             <div>
@@ -158,6 +163,7 @@
                             <i class="fas fa-chart-line text-3xl opacity-80"></i>
                         </div>
                     </div>
+                    
                     <div class="bg-gradient-to-r from-purple-400 to-purple-600 p-6 rounded-lg text-white">
                         <div class="flex items-center justify-between">
                             <div>
@@ -167,18 +173,8 @@
                             <i class="fas fa-percentage text-3xl opacity-80"></i>
                         </div>
                     </div>
-                    <div class="bg-gradient-to-r from-yellow-400 to-yellow-600 p-6 rounded-lg text-white">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="text-lg font-semibold">Ventas Totales</h3>
-                                <p class="text-2xl font-bold" id="ventas-totales">0 ventas</p>
-                            </div>
-                            <i class="fas fa-shopping-cart text-3xl opacity-80"></i>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Gráficos -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <div class="bg-white p-6 rounded-lg shadow">
                         <h3 class="text-lg font-semibold mb-4">Ventas vs Gastos</h3>
@@ -186,6 +182,7 @@
                             <canvas id="chartVentasGastos"></canvas>
                         </div>
                     </div>
+                    
                     <div class="bg-white p-6 rounded-lg shadow">
                         <h3 class="text-lg font-semibold mb-4">Productos Más Vendidos</h3>
                         <div class="chart-container">
@@ -195,21 +192,20 @@
                 </div>
             </div>
 
-            <!-- Productos -->
             <div id="productos" class="tab-content p-6">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">Gestión de Productos</h2>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-gray-50 p-6 rounded-lg">
                         <h3 class="text-lg font-semibold mb-4">Agregar/Editar Producto</h3>
                         <form id="producto-form">
-                            <input type="hidden" id="producto-id"/>
+                            <input type="hidden" id="producto-id">
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Producto</label>
-                                <input type="text" id="producto-nombre" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required/>
+                                <input type="text" id="producto-nombre" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                             </div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Precio (COP)</label>
-                                <input type="number" id="producto-precio" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required/>
+                                <input type="number" id="producto-precio" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                             </div>
                             <div class="flex space-x-2">
                                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"><i class="fas fa-save mr-2"></i>Guardar</button>
@@ -226,17 +222,16 @@
                 </div>
             </div>
 
-            <!-- Métodos de Pago -->
             <div id="metodos-pago" class="tab-content p-6">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">Métodos de Pago</h2>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-gray-50 p-6 rounded-lg">
                         <h3 class="text-lg font-semibold mb-4">Agregar/Editar Método de Pago</h3>
                         <form id="metodo-pago-form">
-                            <input type="hidden" id="metodo-id"/>
+                            <input type="hidden" id="metodo-id">
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Método</label>
-                                <input type="text" id="metodo-nombre" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required/>
+                                <input type="text" id="metodo-nombre" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                             </div>
                             <div class="flex space-x-2">
                                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"><i class="fas fa-save mr-2"></i>Guardar</button>
@@ -253,7 +248,6 @@
                 </div>
             </div>
 
-            <!-- Ventas -->
             <div id="ventas" class="tab-content p-6">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">Registro de Ventas</h2>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -266,7 +260,7 @@
                             </div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Precio (COP)</label>
-                                <input type="number" id="venta-precio" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required/>
+                                <input type="number" id="venta-precio" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                             </div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Método de Pago</label>
@@ -274,7 +268,7 @@
                             </div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Fecha</label>
-                                <input type="date" id="venta-fecha" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required/>
+                                <input type="date" id="venta-fecha" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                             </div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Notas (opcional)</label>
@@ -314,38 +308,29 @@
                 </div>
             </div>
 
-            <!-- Gastos Meta -->
             <div id="gastos-meta" class="tab-content p-6">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">Gastos Meta Ads</h2>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     <div class="bg-gray-50 p-6 rounded-lg">
-                        <h3 class="text-lg font-semibold mb-4">Registrar / Editar Gasto Meta</h3>
+                        <h3 class="text-lg font-semibold mb-4">Registrar Gasto Meta</h3>
                         <form id="gasto-meta-form">
-                            <input type="hidden" id="gasto-id" value=""/>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Nombre de la Campaña</label>
-                                <input type="text" id="gasto-campana" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                <input type="text" id="gasto-campana" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Inicio</label>
-                                <input type="date" id="gasto-fecha-inicio" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required/>
+                                <input type="date" id="gasto-fecha-inicio" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                             </div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Fin</label>
-                                <input type="date" id="gasto-fecha-fin" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required/>
+                                <input type="date" id="gasto-fecha-fin" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                             </div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Monto Total (COP)</label>
-                                <input type="number" id="gasto-monto" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required/>
+                                <input type="number" id="gasto-monto" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                             </div>
-                            <div class="flex space-x-2">
-                                <button type="submit" class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700">
-                                    <i class="fas fa-save mr-2"></i><span id="gasto-form-button-text">Registrar Gasto</span>
-                                </button>
-                                <button type="button" onclick="cancelarEdicionGasto()" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
-                                    <i class="fas fa-times mr-2"></i>Cancelar
-                                </button>
-                            </div>
+                            <button type="submit" class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700"><i class="fas fa-plus mr-2"></i>Registrar Gasto</button>
                         </form>
                     </div>
                     <div class="bg-white p-6 rounded-lg shadow">
@@ -379,19 +364,18 @@
                 </div>
             </div>
 
-            <!-- Reportes -->
             <div id="reportes" class="tab-content p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">Reportes y Análisis</h2>
+                 <h2 class="text-2xl font-bold text-gray-800 mb-6">Reportes y Análisis</h2>
                 <div class="bg-gray-50 p-6 rounded-lg mb-6">
                     <h3 class="text-lg font-semibold mb-4">Filtros de Reporte</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio</label>
-                            <input type="date" id="reporte-fecha-inicio" class="w-full px-3 py-2 border border-gray-300 rounded-md"/>
+                            <input type="date" id="reporte-fecha-inicio" class="w-full px-3 py-2 border border-gray-300 rounded-md">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Fin</label>
-                            <input type="date" id="reporte-fecha-fin" class="w-full px-3 py-2 border border-gray-300 rounded-md"/>
+                            <input type="date" id="reporte-fecha-fin" class="w-full px-3 py-2 border border-gray-300 rounded-md">
                         </div>
                         <div class="flex items-end">
                             <button onclick="generarReporte()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
@@ -407,135 +391,93 @@
         </div>
     </div>
 
-    <!-- SCRIPT al final para garantizar que el DOM esté cargado -->
-    <script>
-    // URL base de la API
+<script>
     const API_URL = '/api';
 
     let productos = [];
     let metodosPago = [];
     let ventas = [];
     let gastosMeta = [];
-
     let charts = {};
     let currentDateRange = 'last7days';
     let currentDateRangeData = {};
 
-    /**
-     * fetchAPI: hace fetch al endpoint dado, muestra indicador de sincronización, loguea errores/respuestas.
-     */
     async function fetchAPI(endpoint, options = {}) {
         const indicator = document.getElementById('sync-indicator');
         const text = document.getElementById('sync-text');
-        // Mostrar indicador
-        if (indicator && text) {
-            indicator.className = 'sync-indicator sync-syncing';
-            text.textContent = 'Sincronizando...';
-            indicator.style.display = 'block';
-        }
+        
+        indicator.className = 'sync-indicator sync-syncing';
+        text.textContent = 'Sincronizando...';
+        indicator.style.display = 'block';
+
         try {
-            const url = `${API_URL}${endpoint}`;
-            console.log('fetchAPI: petición a', url, options);
-            const response = await fetch(url, options);
+            const response = await fetch(`${API_URL}${endpoint}`, options);
             if (!response.ok) {
-                let errorMsg = `Status ${response.status}`;
-                let dataErr = null;
-                try { dataErr = await response.json(); console.warn('Error JSON:', dataErr); }
-                catch(e) { console.warn('No JSON en error'); }
-                if (dataErr && dataErr.error) errorMsg += ` - ${dataErr.error}`;
-                throw new Error(errorMsg);
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Error en la petición a ${endpoint}`);
             }
-            if (indicator && text) {
-                indicator.className = 'sync-indicator sync-success';
-                text.textContent = 'Sincronizado';
-            }
-            if (response.status === 204) return null;
-            const data = await response.json();
-            console.log(`fetchAPI: respuesta de ${endpoint}`, data);
-            return data;
-        } catch (err) {
-            console.error('fetchAPI error en', endpoint, err);
-            if (indicator && text) {
-                indicator.className = 'sync-indicator sync-error';
-                text.textContent = 'Error de conexión';
-            }
-            alert(`Error al cargar ${endpoint}: ${err.message}`);
-            throw err;
+            
+            indicator.className = 'sync-indicator sync-success';
+            text.textContent = 'Sincronizado';
+            
+            if (response.status === 204) { return null; }
+            return response.json();
+        } catch (error) {
+            console.error(`Error en API: ${error.message}`);
+            indicator.className = 'sync-indicator sync-error';
+            text.textContent = 'Error de conexión';
+            alert(`Error de comunicación con el servidor: ${error.message}`);
+            throw error;
         } finally {
-            if (indicator) {
-                setTimeout(() => {
-                    indicator.style.display = 'none';
-                }, 1500);
-            }
+            setTimeout(() => { indicator.style.display = 'none'; }, 2000);
         }
     }
 
-    /**
-     * cargarDatosDesdeAPI: carga productos, métodos de pago, ventas y gastos.
-     * Si hay error, aparece alert y log en consola.
-     */
     async function cargarDatosDesdeAPI() {
-        console.log('Inicio carga inicial');
         try {
-            productos = await fetchAPI('/productos');
-            metodosPago = await fetchAPI('/metodos-pago');
-            ventas = await fetchAPI('/ventas');
-            gastosMeta = await fetchAPI('/gastos');
-            console.log('gastosMeta cargados:', gastosMeta);
+            const [productosData, metodosPagoData, ventasData, gastosData] = await Promise.all([
+                fetchAPI('/productos'),
+                fetchAPI('/metodos-pago'),
+                fetchAPI('/ventas'),
+                fetchAPI('/gastos')
+            ]);
+            
+            productos = productosData;
+            metodosPago = metodosPagoData;
+            ventas = ventasData;
+            gastosMeta = gastosData;
+            
             inicializarAplicacion();
-        } catch (err) {
-            console.error('Error en carga inicial:', err);
-            alert('No se pudieron cargar todos los datos iniciales. Ver consola.');
+        } catch (error) {
+            alert('No se pudieron cargar los datos iniciales. Revisa la consola para más detalles.');
         }
     }
 
-    /**
-     * inicializarAplicacion: establece valores por defecto y carga vistas.
-     */
-    function inicializarAplicacion() {
-        console.log('Inicializando aplicación');
-        // Fecha hoy
-        const hoyStr = new Date().toISOString().split('T')[0];
-        const ventaFechaInput = document.getElementById('venta-fecha');
-        if (ventaFechaInput) ventaFechaInput.value = hoyStr;
-        const gastoInicio = document.getElementById('gasto-fecha-inicio');
-        const gastoFin = document.getElementById('gasto-fecha-fin');
-        if (gastoInicio) gastoInicio.value = hoyStr;
-        if (gastoFin) gastoFin.value = hoyStr;
-
-        cargarProductos();
-        cargarMetodosPago();
-        cargarVentas();
-        cargarGastosMeta();
-
-        actualizarResumenVentas();
-        actualizarResumenGastos();
-
-        updateDateRangeData('last7days');
-        actualizarDashboard();
-
-        // Ajuste del texto "Datos en la nube"
-        const textoNube = document.querySelector('.text-right');
-        if (textoNube) textoNube.innerHTML = `<p class="text-gray-600">Datos en la nube <i class="fas fa-cloud text-blue-500"></i></p>`;
+    function formatearPesos(cantidad) {
+        return '$' + (Number(cantidad) || 0).toLocaleString('es-CO');
     }
 
-    // ----- PRODUCTOS -----
+    function showTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(tabName).classList.add('active');
+        event.target.closest('.tab-button').classList.add('active');
+        
+        if (tabName === 'dashboard') {
+            actualizarDashboard();
+        }
+    }
+
     function cargarProductos() {
         const lista = document.getElementById('productos-lista');
-        if (!lista) return console.warn('No se encontró #productos-lista');
         lista.innerHTML = '';
-        if (!Array.isArray(productos)) {
-            console.warn('productos no es array:', productos);
-            return;
-        }
-        productos.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '')).forEach(producto => {
+        productos.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(producto => {
             const div = document.createElement('div');
             div.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
-            const precioNum = parseFloat(producto.precio) || 0;
             div.innerHTML = `
                 <div>
-                    <h4 class="font-semibold">${producto.nombre || ''}</h4>
-                    <p class="text-gray-600">${formatearPesos(precioNum)}</p>
+                    <h4 class="font-semibold">${producto.nombre}</h4>
+                    <p class="text-gray-600">${formatearPesos(producto.precio)}</p>
                 </div>
                 <div class="space-x-2">
                     <button onclick="editarProducto(${producto.id})" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button>
@@ -550,84 +492,55 @@
     document.getElementById('producto-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         const id = document.getElementById('producto-id').value;
-        const nombre = document.getElementById('producto-nombre').value;
-        const precio = parseFloat(document.getElementById('producto-precio').value);
-        if (!nombre || isNaN(precio)) {
-            alert('Completa nombre y precio.');
-            return;
-        }
+        const productoData = {
+            nombre: document.getElementById('producto-nombre').value,
+            precio: parseFloat(document.getElementById('producto-precio').value)
+        };
+
         try {
             if (id) {
-                const actualizado = await fetchAPI(`/productos?id=${id}`, {
-                    method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ id: parseInt(id), nombre, precio })
-                });
-                const idx = productos.findIndex(p => p.id == id);
-                if (idx >= 0 && actualizado) productos[idx] = actualizado;
+                const actualizado = await fetchAPI(`/productos`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id: parseInt(id), ...productoData }) });
+                const index = productos.findIndex(p => p.id == id);
+                productos[index] = actualizado;
             } else {
-                const nuevo = await fetchAPI('/productos', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ nombre, precio })
-                });
-                if (nuevo) productos.push(nuevo);
+                const nuevo = await fetchAPI('/productos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(productoData) });
+                productos.push(nuevo);
             }
             cargarProductos();
             cancelarEdicionProducto();
-        } catch (err) {
-            console.error('Error en formulario producto:', err);
-        }
+        } catch (error) {}
     });
 
     function editarProducto(id) {
         const producto = productos.find(p => p.id === id);
-        if (!producto) return;
         document.getElementById('producto-id').value = producto.id;
-        document.getElementById('producto-nombre').value = producto.nombre || '';
-        document.getElementById('producto-precio').value = parseFloat(producto.precio) || '';
+        document.getElementById('producto-nombre').value = producto.nombre;
+        document.getElementById('producto-precio').value = parseFloat(producto.precio);
     }
+
     function cancelarEdicionProducto() {
-        const form = document.getElementById('producto-form');
-        if (form) form.reset();
-        const hid = document.getElementById('producto-id');
-        if (hid) hid.value = '';
+        document.getElementById('producto-form').reset();
+        document.getElementById('producto-id').value = '';
     }
+
     async function eliminarProducto(id) {
-        if (!confirm('¿Seguro que deseas eliminar este producto?')) return;
-        try {
-            await fetchAPI(`/productos?id=${id}`, {
-                method: 'DELETE',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ id })
-            });
-            productos = productos.filter(p => p.id !== id);
-            cargarProductos();
-            actualizarDashboard();
-        } catch (err) {
-            console.error('Error eliminando producto:', err);
+        if (confirm('¿Estás seguro de eliminar este producto? Podría afectar registros de ventas existentes.')) {
+            try {
+                await fetchAPI(`/productos`, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id }) });
+                productos = productos.filter(p => p.id !== id);
+                cargarProductos();
+                actualizarDashboard();
+            } catch (error) {}
         }
     }
 
-    // ----- MÉTODOS DE PAGO -----
     function cargarMetodosPago() {
         const lista = document.getElementById('metodos-lista');
-        if (!lista) return console.warn('No se encontró #metodos-lista');
         lista.innerHTML = '';
-        if (!Array.isArray(metodosPago)) {
-            console.warn('metodosPago no es array:', metodosPago);
-            return;
-        }
-        metodosPago.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '')).forEach(metodo => {
+        metodosPago.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(metodo => {
             const div = document.createElement('div');
             div.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
-            div.innerHTML = `
-                <div><h4 class="font-semibold">${metodo.nombre || ''}</h4></div>
-                <div class="space-x-2">
-                    <button onclick="editarMetodo(${metodo.id})" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button>
-                    <button onclick="eliminarMetodo(${metodo.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
-                </div>
-            `;
+            div.innerHTML = `<div><h4 class="font-semibold">${metodo.nombre}</h4></div><div class="space-x-2"><button onclick="editarMetodo(${metodo.id})" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button><button onclick="eliminarMetodo(${metodo.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button></div>`;
             lista.appendChild(div);
         });
         cargarSelectMetodosPago();
@@ -636,540 +549,267 @@
     document.getElementById('metodo-pago-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         const id = document.getElementById('metodo-id').value;
-        const nombre = document.getElementById('metodo-nombre').value;
-        if (!nombre) {
-            alert('Completa el nombre del método de pago.');
-            return;
-        }
+        const metodoData = { nombre: document.getElementById('metodo-nombre').value };
         try {
             if (id) {
-                const actualizado = await fetchAPI(`/metodos-pago?id=${id}`, {
-                    method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ id: parseInt(id), nombre })
-                });
-                const idx = metodosPago.findIndex(m => m.id == id);
-                if (idx >= 0 && actualizado) metodosPago[idx] = actualizado;
+                const actualizado = await fetchAPI(`/metodos-pago`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id: parseInt(id), ...metodoData }) });
+                const index = metodosPago.findIndex(m => m.id == id);
+                metodosPago[index] = actualizado;
             } else {
-                const nuevo = await fetchAPI('/metodos-pago', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ nombre })
-                });
-                if (nuevo) metodosPago.push(nuevo);
+                const nuevo = await fetchAPI('/metodos-pago', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(metodoData) });
+                metodosPago.push(nuevo);
             }
             cargarMetodosPago();
             cancelarEdicionMetodo();
-        } catch (err) {
-            console.error('Error formulario método de pago:', err);
-        }
+        } catch (error) {}
     });
 
     function editarMetodo(id) {
         const metodo = metodosPago.find(m => m.id === id);
-        if (!metodo) return;
         document.getElementById('metodo-id').value = metodo.id;
-        document.getElementById('metodo-nombre').value = metodo.nombre || '';
+        document.getElementById('metodo-nombre').value = metodo.nombre;
     }
+
     function cancelarEdicionMetodo() {
-        const form = document.getElementById('metodo-pago-form');
-        if (form) form.reset();
-        const hid = document.getElementById('metodo-id');
-        if (hid) hid.value = '';
+        document.getElementById('metodo-pago-form').reset();
+        document.getElementById('metodo-id').value = '';
     }
+
     async function eliminarMetodo(id) {
-        if (!confirm('¿Seguro que deseas eliminar este método de pago?')) return;
-        try {
-            await fetchAPI(`/metodos-pago?id=${id}`, {
-                method: 'DELETE',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ id })
-            });
-            metodosPago = metodosPago.filter(m => m.id !== id);
-            cargarMetodosPago();
-        } catch (err) {
-            console.error('Error eliminando método pago:', err);
+        if (confirm('¿Estás seguro de eliminar este método de pago?')) {
+            try {
+                await fetchAPI(`/metodos-pago`, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id }) });
+                metodosPago = metodosPago.filter(m => m.id !== id);
+                cargarMetodosPago();
+            } catch (error) {}
         }
     }
 
-    // ----- VENTAS -----
     function cargarVentas() {
         const tabla = document.getElementById('ventas-tabla');
-        if (!tabla) return console.warn('No se encontró #ventas-tabla');
         tabla.innerHTML = '';
-        if (!Array.isArray(ventas)) {
-            console.warn('ventas no es array:', ventas);
-            return;
-        }
         ventas.forEach(venta => {
             const tr = document.createElement('tr');
-            const precioNum = parseFloat(venta.precio) || 0;
-            tr.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${venta.fecha || ''}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${venta.producto_nombre || ''}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatearPesos(precioNum)}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${venta.metodo_pago_nombre || ''}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button onclick="eliminarVenta(${venta.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
-                </td>
-            `;
+            tr.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${venta.fecha}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${venta.producto_nombre}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatearPesos(venta.precio)}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${venta.metodo_pago_nombre}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><button onclick="eliminarVenta(${venta.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button></td>`;
             tabla.appendChild(tr);
         });
     }
 
     document.getElementById('venta-form').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const prodId = parseInt(document.getElementById('venta-producto').value);
-        const metId = parseInt(document.getElementById('venta-metodo-pago').value);
-        const precio = parseFloat(document.getElementById('venta-precio').value);
-        const fecha = document.getElementById('venta-fecha').value;
-        const notas = document.getElementById('venta-notas').value;
-        if (isNaN(prodId) || isNaN(metId) || isNaN(precio) || !fecha) {
-            alert('Completa todos los campos de la venta.');
-            return;
-        }
+        const ventaData = { producto_id: parseInt(document.getElementById('venta-producto').value), metodo_pago_id: parseInt(document.getElementById('venta-metodo-pago').value), precio: parseFloat(document.getElementById('venta-precio').value), fecha: document.getElementById('venta-fecha').value, notas: document.getElementById('venta-notas').value };
         try {
-            const nuevaVenta = await fetchAPI('/ventas', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    producto_id: prodId,
-                    metodo_pago_id: metId,
-                    precio,
-                    fecha,
-                    notas
-                })
-            });
-            if (nuevaVenta) {
-                const prod = productos.find(p => p.id === nuevaVenta.producto_id);
-                const met = metodosPago.find(m => m.id === nuevaVenta.metodo_pago_id);
-                ventas.unshift({
-                    ...nuevaVenta,
-                    producto_nombre: prod ? prod.nombre : '',
-                    metodo_pago_nombre: met ? met.nombre : ''
-                });
-            }
+            const result = await fetchAPI('/ventas', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(ventaData) });
+            const producto = productos.find(p => p.id === result.producto_id);
+            const metodo = metodosPago.find(m => m.id === result.metodo_pago_id);
+            const nuevaVentaConNombres = { ...result, producto_nombre: producto.nombre, metodo_pago_nombre: metodo.nombre };
+            ventas.unshift(nuevaVentaConNombres);
             cargarVentas();
             actualizarResumenVentas();
             actualizarDashboard();
-            const form = document.getElementById('venta-form');
-            if (form) form.reset();
-            const hoyStr = new Date().toISOString().split('T')[0];
-            const ventaFechaInput2 = document.getElementById('venta-fecha');
-            if (ventaFechaInput2) ventaFechaInput2.value = hoyStr;
-        } catch (err) {
-            console.error('Error registrando venta:', err);
-        }
+            document.getElementById('venta-form').reset();
+            document.getElementById('venta-fecha').value = new Date().toISOString().split('T')[0];
+        } catch(error) {}
     });
 
     async function eliminarVenta(id) {
-        if (!confirm('¿Seguro que deseas eliminar esta venta?')) return;
-        try {
-            await fetchAPI('/ventas', {
-                method: 'DELETE',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ id })
-            });
-            ventas = ventas.filter(v => v.id !== id);
-            cargarVentas();
-            actualizarResumenVentas();
-            actualizarDashboard();
-        } catch (err) {
-            console.error('Error eliminando venta:', err);
+        if (confirm('¿Estás seguro de eliminar esta venta?')) {
+            try {
+                await fetchAPI('/ventas', { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id }) });
+                ventas = ventas.filter(v => v.id !== id);
+                cargarVentas();
+                actualizarResumenVentas();
+                actualizarDashboard();
+            } catch (error) {}
         }
     }
 
-    // ----- GASTOS -----
     function cargarGastosMeta() {
         const tabla = document.getElementById('gastos-tabla');
-        if (!tabla) return console.warn('No se encontró #gastos-tabla');
         tabla.innerHTML = '';
-        if (!Array.isArray(gastosMeta)) {
-            console.warn('gastosMeta no es array:', gastosMeta);
-            return;
-        }
         gastosMeta.forEach(gasto => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gasto.campana || ''}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatDateForDisplay(gasto.fecha_inicio)}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatDateForDisplay(gasto.fecha_fin)}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatearPesos(parseFloat(gasto.monto) || 0)}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 space-x-2">
-                    <button onclick="editarGasto(${gasto.id})" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button>
-                    <button onclick="eliminarGasto(${gasto.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
-                </td>
-            `;
+            tr.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gasto.campana}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gasto.fecha_inicio}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${gasto.fecha_fin}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatearPesos(gasto.monto)}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><button onclick="eliminarGasto(${gasto.id})" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button></td>`;
             tabla.appendChild(tr);
         });
-        console.log('Tabla de gastos renderizada, total registros:', gastosMeta.length);
-    }
-
-    function formatDateForDisplay(fechaStr) {
-        if (!fechaStr) return '';
-        if (fechaStr.includes('T')) {
-            const d = new Date(fechaStr);
-            if (!isNaN(d)) {
-                return d.toISOString().split('T')[0];
-            }
-        }
-        // Asumimos que ya es "YYYY-MM-DD"
-        return fechaStr;
     }
 
     document.getElementById('gasto-meta-form').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const id = document.getElementById('gasto-id').value;
-        const campana = document.getElementById('gasto-campana').value;
-        const fecha_inicio = document.getElementById('gasto-fecha-inicio').value;
-        const fecha_fin = document.getElementById('gasto-fecha-fin').value;
-        const monto = parseFloat(document.getElementById('gasto-monto').value);
-        if (!fecha_inicio || !fecha_fin || isNaN(monto)) {
-            alert('Completa fecha inicio, fecha fin y monto.');
-            return;
-        }
-        if (fecha_inicio > fecha_fin) {
-            alert('La fecha de inicio no puede ser posterior a la fecha de fin.');
-            return;
-        }
-        const gastoData = { campana, fecha_inicio, fecha_fin, monto };
+        const gastoData = { campana: document.getElementById('gasto-campana').value, fecha_inicio: document.getElementById('gasto-fecha-inicio').value, fecha_fin: document.getElementById('gasto-fecha-fin').value, monto: parseFloat(document.getElementById('gasto-monto').value) };
         try {
-            if (id) {
-                // PUT
-                const actualizado = await fetchAPI(`/gastos`, {
-                    method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ id: parseInt(id), ...gastoData })
-                });
-                const idx = gastosMeta.findIndex(g => g.id === parseInt(id));
-                if (idx >= 0 && actualizado) gastosMeta[idx] = actualizado;
-                alert('Gasto actualizado correctamente.');
-            } else {
-                // POST
-                const nuevo = await fetchAPI('/gastos', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(gastoData)
-                });
-                if (nuevo) {
-                    gastosMeta.push(nuevo);
-                    alert('Gasto registrado correctamente.');
-                }
-            }
+            const nuevoGasto = await fetchAPI('/gastos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(gastoData) });
+            gastosMeta.unshift(nuevoGasto);
             cargarGastosMeta();
             actualizarResumenGastos();
             actualizarDashboard();
-            cancelarEdicionGasto();
-        } catch (err) {
-            console.error('Error en guardar gasto:', err);
+            document.getElementById('gasto-meta-form').reset();
+        } catch (error) {}
+    });
+
+    async function eliminarGasto(id) {
+        if (confirm('¿Estás seguro de eliminar este gasto?')) {
+            try {
+                await fetchAPI('/gastos', { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id }) });
+                gastosMeta = gastosMeta.filter(g => g.id !== id);
+                cargarGastosMeta();
+                actualizarResumenGastos();
+                actualizarDashboard();
+            } catch (error) {}
+        }
+    }
+
+    function cargarSelectProductos() {
+        const select = document.getElementById('venta-producto');
+        select.innerHTML = '<option value="">Seleccionar producto</option>';
+        productos.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(p => {
+            const option = document.createElement('option');
+            option.value = p.id;
+            option.textContent = `${p.nombre} - ${formatearPesos(p.precio)}`;
+            option.dataset.precio = p.precio;
+            select.appendChild(option);
+        });
+    }
+
+    function cargarSelectMetodosPago() {
+        const select = document.getElementById('venta-metodo-pago');
+        select.innerHTML = '<option value="">Seleccionar método</option>';
+        metodosPago.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(m => {
+            const option = document.createElement('option');
+            option.value = m.id;
+            option.textContent = m.nombre;
+            select.appendChild(option);
+        });
+    }
+
+    document.getElementById('venta-producto').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption.dataset.precio) {
+            document.getElementById('venta-precio').value = parseFloat(selectedOption.dataset.precio);
         }
     });
 
-    function editarGasto(id) {
-        const gasto = gastosMeta.find(g => g.id === id);
-        if (!gasto) return;
-        document.getElementById('gasto-id').value = gasto.id;
-        document.getElementById('gasto-campana').value = gasto.campana || '';
-        const inicio = formatDateForDisplay(gasto.fecha_inicio);
-        const fin = formatDateForDisplay(gasto.fecha_fin);
-        document.getElementById('gasto-fecha-inicio').value = inicio;
-        document.getElementById('gasto-fecha-fin').value = fin;
-        document.getElementById('gasto-monto').value = parseFloat(gasto.monto) || '';
-        // Cambiar texto del botón
-        const btnText = document.getElementById('gasto-form-button-text');
-        if (btnText) btnText.textContent = 'Actualizar Gasto';
-        // Mostrar pestaña Gastos
-        showTab('gastos-meta');
+    function inicializarAplicacion() {
+        document.getElementById('venta-fecha').value = new Date().toISOString().split('T')[0];
+        document.getElementById('gasto-fecha-inicio').value = new Date().toISOString().split('T')[0];
+        document.getElementById('gasto-fecha-fin').value = new Date().toISOString().split('T')[0];
+        cargarProductos();
+        cargarMetodosPago();
+        cargarVentas();
+        cargarGastosMeta();
+        actualizarResumenVentas();
+        actualizarResumenGastos();
+        updateDateRangeData('last7days');
+        actualizarDashboard();
     }
 
-    function cancelarEdicionGasto() {
-        const form = document.getElementById('gasto-meta-form');
-        if (form) form.reset();
-        const hid = document.getElementById('gasto-id');
-        if (hid) hid.value = '';
-        const btnText = document.getElementById('gasto-form-button-text');
-        if (btnText) btnText.textContent = 'Registrar Gasto';
+    // --- Dashboard, Resúmenes y Gráficos ---
+    function actualizarResumenVentas() {
+        const hoy = new Date().toISOString().split('T')[0];
+        const inicioSemana = new Date();
+        inicioSemana.setDate(inicioSemana.getDate() - (inicioSemana.getDay() === 0 ? 6 : inicioSemana.getDay() - 1));
+        const inicioSemanaStr = inicioSemana.toISOString().split('T')[0];
+        const ventasHoy = ventas.filter(v => v.fecha.startsWith(hoy));
+        const ventasSemana = ventas.filter(v => v.fecha.split('T')[0] >= inicioSemanaStr);
+        document.getElementById('ventas-hoy').textContent = ventasHoy.length;
+        document.getElementById('ingresos-hoy').textContent = formatearPesos(ventasHoy.reduce((sum, v) => sum + parseFloat(v.precio), 0));
+        document.getElementById('ventas-semana').textContent = ventasSemana.length;
+        document.getElementById('ingresos-semana').textContent = formatearPesos(ventasSemana.reduce((sum, v) => sum + parseFloat(v.precio), 0));
     }
 
-    async function eliminarGasto(id) {
-        if (!confirm('¿Seguro que deseas eliminar este gasto?')) return;
-        try {
-            await fetchAPI('/gastos', {
-                method: 'DELETE',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ id })
-            });
-            gastosMeta = gastosMeta.filter(g => g.id !== id);
-            cargarGastosMeta();
-            actualizarResumenGastos();
-            actualizarDashboard();
-            alert('Gasto eliminado.');
-        } catch (err) {
-            console.error('Error al eliminar gasto:', err);
-        }
-    }
-
+    // CORREGIDO: Cálculo de gastos más preciso
     function calcularGastoPorFecha(fecha) {
-        const f = new Date(fecha + 'T00:00:00');
-        if (isNaN(f)) return 0;
-        let total = 0;
-        gastosMeta.forEach(g => {
-            let inicio, fin;
-            if (typeof g.fecha_inicio === 'string' && g.fecha_inicio.includes('T')) inicio = new Date(g.fecha_inicio);
-            else inicio = new Date((g.fecha_inicio || '') + 'T00:00:00');
-            if (typeof g.fecha_fin === 'string' && g.fecha_fin.includes('T')) fin = new Date(g.fecha_fin);
-            else fin = new Date((g.fecha_fin || '') + 'T00:00:00');
-            if (isNaN(inicio) || isNaN(fin)) {
-                console.warn('Fecha inválida en gasto:', g);
-                return;
-            }
-            if (f >= inicio && f <= fin) {
-                const diffMs = fin - inicio;
-                const totalDias = Math.floor(diffMs / (1000*60*60*24)) + 1;
-                if (totalDias <= 0) return;
-                const montoDiario = parseFloat(g.monto) / totalDias;
-                total += montoDiario;
-            }
-        });
-        return total;
+        return gastosMeta
+            .filter(g => fecha >= g.fecha_inicio && fecha <= g.fecha_fin)
+            .reduce((sum, g) => {
+                const startDate = new Date(g.fecha_inicio + 'T00:00:00');
+                const endDate = new Date(g.fecha_fin + 'T00:00:00');
+                const dias = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                return sum + (parseFloat(g.monto) / dias);
+            }, 0);
     }
 
     function actualizarResumenGastos() {
         const hoyStr = new Date().toISOString().split('T')[0];
-        const hoyDate = new Date(hoyStr + 'T00:00:00');
-        // Inicio semana: lunes
-        const inicioSemana = new Date(hoyDate);
-        const day = inicioSemana.getDay();
-        const diff = (day === 0 ? 6 : day - 1);
-        inicioSemana.setDate(inicioSemana.getDate() - diff);
-        // Inicio mes
-        const inicioMes = new Date(hoyDate.getFullYear(), hoyDate.getMonth(), 1);
-
-        const gastoHoy = calcularGastoPorFecha(hoyStr);
-
+        const hoy = new Date(hoyStr + 'T00:00:00');
+        const semanaInicio = new Date(hoy);
+        semanaInicio.setDate(hoy.getDate() - (hoy.getDay() === 0 ? 6 : hoy.getDay() - 1));
+        const mesInicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
         let gastoSemana = 0;
-        for (let d = new Date(inicioSemana); d <= hoyDate; d.setDate(d.getDate() + 1)) {
-            gastoSemana += calcularGastoPorFecha(d.toISOString().split('T')[0]);
+        for (let fecha = new Date(semanaInicio); fecha <= hoy; fecha.setDate(fecha.getDate() + 1)) {
+            gastoSemana += calcularGastoPorFecha(fecha.toISOString().split('T')[0]);
         }
         let gastoMes = 0;
-        for (let d = new Date(inicioMes); d <= hoyDate; d.setDate(d.getDate() + 1)) {
-            gastoMes += calcularGastoPorFecha(d.toISOString().split('T')[0]);
+        for (let fecha = new Date(mesInicio); fecha <= hoy; fecha.setDate(fecha.getDate() + 1)) {
+            gastoMes += calcularGastoPorFecha(fecha.toISOString().split('T')[0]);
         }
-        const gastoTotal = gastosMeta.reduce((sum, g) => sum + (parseFloat(g.monto) || 0), 0);
-
-        const elHoy = document.getElementById('gasto-hoy');
-        if (elHoy) elHoy.textContent = formatearPesos(Math.round(gastoHoy));
-        const elSem = document.getElementById('gasto-semana');
-        if (elSem) elSem.textContent = formatearPesos(Math.round(gastoSemana));
-        const elMes = document.getElementById('gasto-mes');
-        if (elMes) elMes.textContent = formatearPesos(Math.round(gastoMes));
-        const elTot = document.getElementById('gasto-total');
-        if (elTot) elTot.textContent = formatearPesos(gastoTotal);
+        document.getElementById('gasto-hoy').textContent = formatearPesos(calcularGastoPorFecha(hoyStr));
+        document.getElementById('gasto-semana').textContent = formatearPesos(gastoSemana);
+        document.getElementById('gasto-mes').textContent = formatearPesos(gastoMes);
+        document.getElementById('gasto-total').textContent = formatearPesos(gastosMeta.reduce((sum, g) => sum + parseFloat(g.monto), 0));
     }
-
-    // ----- DASHBOARD -----
+    
+    // CORREGIDO: Añadido contador de ventas y cálculo de gastos
     function actualizarDashboard() {
-        if (!currentDateRangeData.startDate) {
-            updateDateRangeData('last7days');
-        }
         const ventasFiltradas = filtrarVentasPorRango();
-
-        // Gastos en rango
         let totalGastos = 0;
-        const start = new Date(currentDateRangeData.startDate + 'T00:00:00');
-        const end = new Date(currentDateRangeData.endDate + 'T00:00:00');
-        if (!isNaN(start) && !isNaN(end) && start <= end) {
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                totalGastos += calcularGastoPorFecha(d.toISOString().split('T')[0]);
-            }
+        const rangoInicio = new Date(currentDateRangeData.startDate + 'T00:00:00');
+        const rangoFin = new Date(currentDateRangeData.endDate + 'T00:00:00');
+
+        for (let fecha = new Date(rangoInicio); fecha <= rangoFin; fecha.setDate(fecha.getDate() + 1)) {
+            totalGastos += calcularGastoPorFecha(fecha.toISOString().split('T')[0]);
         }
 
-        const totalIngresos = ventasFiltradas.reduce((sum, v) => sum + (parseFloat(v.precio) || 0), 0);
+        const totalIngresos = ventasFiltradas.reduce((sum, v) => sum + parseFloat(v.precio), 0);
         const gananciaNeta = totalIngresos - totalGastos;
         const roi = totalGastos > 0 ? ((gananciaNeta / totalGastos) * 100) : (totalIngresos > 0 ? Infinity : 0);
 
-        const elIngr = document.getElementById('total-ingresos');
-        if (elIngr) elIngr.textContent = formatearPesos(totalIngresos);
-        const elGast = document.getElementById('total-gastos');
-        if (elGast) elGast.textContent = formatearPesos(Math.round(totalGastos));
-        const elGan = document.getElementById('ganancia-neta');
-        if (elGan) elGan.textContent = formatearPesos(gananciaNeta);
-        const elRoi = document.getElementById('roi-percentage');
-        if (elRoi) elRoi.textContent = roi === Infinity ? '∞%' : roi.toFixed(1) + '%';
-        const elVentTot = document.getElementById('ventas-totales');
-        if (elVentTot) {
-            const cnt = ventasFiltradas.length;
-            elVentTot.textContent = cnt + (cnt === 1 ? ' venta' : ' ventas');
-        }
-
+        document.getElementById('total-ingresos').textContent = formatearPesos(totalIngresos);
+        document.getElementById('total-ventas').textContent = ventasFiltradas.length; // NUEVO
+        document.getElementById('total-gastos').textContent = formatearPesos(totalGastos);
+        document.getElementById('ganancia-neta').textContent = formatearPesos(gananciaNeta);
+        document.getElementById('roi-percentage').textContent = roi === Infinity ? '∞%' : `${roi.toFixed(1)}%`;
+        
         actualizarGraficos();
     }
-
+    
     function actualizarGraficos() {
         const ventasFiltradas = filtrarVentasPorRango();
         const fechas = [];
         const ventasData = [];
         const gastosData = [];
-        const inicio = new Date(currentDateRangeData.startDate + 'T00:00:00');
-        const fin = new Date(currentDateRangeData.endDate + 'T00:00:00');
-        if (!isNaN(inicio) && !isNaN(fin) && inicio <= fin) {
-            for (let d = new Date(inicio); d <= fin; d.setDate(d.getDate() + 1)) {
-                const fechaStr = d.toISOString().split('T')[0];
-                fechas.push(d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }));
-                ventasData.push(ventasFiltradas.filter(v => v.fecha === fechaStr).reduce((sum, v) => sum + (parseFloat(v.precio) || 0), 0));
-                gastosData.push(Math.round(calcularGastoPorFecha(fechaStr)));
+        
+        if (currentDateRangeData.startDate && currentDateRangeData.endDate) {
+            const inicio = new Date(currentDateRangeData.startDate + 'T00:00:00');
+            const fin = new Date(currentDateRangeData.endDate + 'T00:00:00');
+            
+            for (let fecha = new Date(inicio); fecha <= fin; fecha.setDate(fecha.getDate() + 1)) {
+                const fechaStr = fecha.toISOString().split('T')[0];
+                fechas.push(fecha.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }));
+                ventasData.push(ventasFiltradas.filter(v => v.fecha.startsWith(fechaStr)).reduce((sum, v) => sum + parseFloat(v.precio), 0));
+                gastosData.push(calcularGastoPorFecha(fechaStr));
             }
         }
-        // Gráfico Ventas vs Gastos
-        try {
-            const ctx1El = document.getElementById('chartVentasGastos');
-            if (ctx1El) {
-                if (charts.ventasGastos) charts.ventasGastos.destroy();
-                const ctx1 = ctx1El.getContext('2d');
-                charts.ventasGastos = new Chart(ctx1, {
-                    type: 'line',
-                    data: {
-                        labels: fechas,
-                        datasets: [
-                            { label: 'Ventas', data: ventasData, borderColor: 'rgb(34, 197, 94)', backgroundColor: 'rgba(34, 197, 94, 0.1)', tension: 0.1 },
-                            { label: 'Gastos', data: gastosData, borderColor: 'rgb(239, 68, 68)', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.1 }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { callback: value => formatearPesos(value) }
-                            }
-                        },
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: context => `${context.dataset.label}: ${formatearPesos(context.parsed.y)}`
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        } catch (e) {
-            console.error('Error gráfico Ventas vs Gastos:', e);
-        }
-        // Gráfico Productos Más Vendidos
-        try {
-            const ctx2El = document.getElementById('chartProductos');
-            if (ctx2El) {
-                if (charts.productos) charts.productos.destroy();
-                const productosVendidos = {};
-                ventasFiltradas.forEach(v => {
-                    productosVendidos[v.producto_nombre] = (productosVendidos[v.producto_nombre] || 0) + 1;
-                });
-                const orden = Object.entries(productosVendidos).sort(([,a],[,b]) => b - a).slice(0,5);
-                if (orden.length > 0) {
-                    const ctx2 = ctx2El.getContext('2d');
-                    charts.productos = new Chart(ctx2, {
-                        type: 'doughnut',
-                        data: {
-                            labels: orden.map(([n]) => n),
-                            datasets: [{ data: orden.map(([,c]) => c), backgroundColor: ['#3B82F6','#EF4444','#10B981','#F59E0B','#8B5CF6'] }]
-                        },
-                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-                    });
-                }
-            }
-        } catch (e) {
-            console.error('Error gráfico Productos:', e);
-        }
-    }
-
-    // ----- RANGO DE FECHAS -----
-    function toggleDateRangeDropdown() {
-        const dd = document.getElementById('date-range-dropdown');
-        if (dd) dd.classList.toggle('active');
-    }
-    function closeCustomDateModal() {
-        const modal = document.getElementById('custom-date-modal');
-        if (modal) modal.classList.add('hidden');
-    }
-    function selectDateRange(range) {
-        currentDateRange = range;
-        if (range === 'custom') {
-            const modal = document.getElementById('custom-date-modal');
-            if (modal) modal.classList.remove('hidden');
+        
+        if (charts.ventasGastos) charts.ventasGastos.destroy();
+        charts.ventasGastos = new Chart(document.getElementById('chartVentasGastos').getContext('2d'), { type: 'line', data: { labels: fechas, datasets: [{ label: 'Ventas', data: ventasData, borderColor: 'rgb(34, 197, 94)', backgroundColor: 'rgba(34, 197, 94, 0.1)', tension: 0.1 }, { label: 'Gastos', data: gastosData, borderColor: 'rgb(239, 68, 68)', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: value => formatearPesos(value) } } }, plugins: { tooltip: { callbacks: { label: context => `${context.dataset.label}: ${formatearPesos(context.parsed.y)}` } } } } });
+        
+        const productosVendidos = ventasFiltradas.reduce((acc, venta) => {
+            acc[venta.producto_nombre] = (acc[venta.producto_nombre] || 0) + 1;
+            return acc;
+        }, {});
+        const productosOrdenados = Object.entries(productosVendidos).sort(([,a], [,b]) => b - a).slice(0, 5);
+        
+        if (charts.productos) charts.productos.destroy();
+        const chartProductosCanvas = document.getElementById('chartProductos');
+        const ctxProductos = chartProductosCanvas.getContext('2d');
+        if (productosOrdenados.length > 0) {
+            charts.productos = new Chart(ctxProductos, { type: 'doughnut', data: { labels: productosOrdenados.map(([nombre]) => nombre), datasets: [{ data: productosOrdenados.map(([, cant]) => cant), backgroundColor: ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
         } else {
-            updateDateRangeData(range);
-            actualizarDashboard();
+             ctxProductos.clearRect(0, 0, chartProductosCanvas.width, chartProductosCanvas.height);
         }
-        const dd = document.getElementById('date-range-dropdown');
-        if (dd) dd.classList.remove('active');
     }
-    function applyCustomDateRange() {
-        const startDate = document.getElementById('custom-start-date').value;
-        const endDate = document.getElementById('custom-end-date').value;
-        if (!startDate || !endDate || startDate > endDate) {
-            alert('Selecciona un rango de fechas válido.');
-            return;
-        }
-        currentDateRangeData = {
-            startDate,
-            endDate,
-            label: `${startDate.split('-')[2]}/${startDate.split('-')[1]} - ${endDate.split('-')[2]}/${endDate.split('-')[1]}`
-        };
-        const sel = document.getElementById('selected-range-text');
-        if (sel) sel.textContent = currentDateRangeData.label;
-        closeCustomDateModal();
-        actualizarDashboard();
-    }
-    function updateDateRangeData(range) {
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        let startDate, endDate, label;
-        switch(range) {
-            case 'today':
-                startDate = new Date(today);
-                endDate = new Date(today);
-                label = 'Hoy';
-                break;
-            case 'yesterday':
-                startDate = new Date(today);
-                startDate.setDate(today.getDate() - 1);
-                endDate = new Date(startDate);
-                label = 'Ayer';
-                break;
-            case 'last7days':
-                startDate = new Date(today);
-                startDate.setDate(today.getDate() - 6);
-                endDate = new Date(today);
-                label = 'Últimos 7 días';
-                break;
-            case 'thismonth':
-                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-                endDate = new Date(today);
-                label = 'Este mes';
-                break;
-            default:
-                startDate = new Date(today);
-                startDate.setDate(today.getDate() - 6);
-                endDate = new Date(today);
-                label = 'Últimos 7 días';
-                break;
-        }
-        currentDateRangeData = {
-            startDate: startDate.toISOString().split('T')[0],
-            endDate: endDate.toISOString().split('T')[0],
-            label
-        };
-        const sel = document.getElementById('selected-range-text');
-        if (sel) sel.textContent = label;
-    }
-    function filtrarVentasPorRango() {
-        if (!currentDateRangeData.startDate) return ventas || [];
-        return (ventas || []).filter(v => v.fecha >= currentDateRangeData.startDate && v.fecha <= currentDateRangeData.endDate);
-    }
-
-    // ----- REPORTES -----
+    
     function generarReporte() {
         const fechaInicio = document.getElementById('reporte-fecha-inicio').value;
         const fechaFin = document.getElementById('reporte-fecha-fin').value;
@@ -1177,80 +817,65 @@
             alert('Por favor selecciona un rango de fechas válido.');
             return;
         }
-        const ventasReporte = (ventas || []).filter(v => v.fecha >= fechaInicio && v.fecha <= fechaFin);
+
+        const ventasReporte = ventas.filter(v => v.fecha.split('T')[0] >= fechaInicio && v.fecha.split('T')[0] <= fechaFin);
         let gastosReporte = 0;
-        const rInicio = new Date(fechaInicio + 'T00:00:00');
-        const rFin = new Date(fechaFin + 'T00:00:00');
-        if (!isNaN(rInicio) && !isNaN(rFin) && rInicio <= rFin) {
-            for (let d = new Date(rInicio); d <= rFin; d.setDate(d.getDate() + 1)) {
-                gastosReporte += calcularGastoPorFecha(d.toISOString().split('T')[0]);
-            }
+        const rangoInicio = new Date(fechaInicio + 'T00:00:00');
+        const rangoFin = new Date(fechaFin + 'T00:00:00');
+
+        for (let fecha = new Date(rangoInicio); fecha <= rangoFin; fecha.setDate(fecha.getDate() + 1)) {
+            gastosReporte += calcularGastoPorFecha(fecha.toISOString().split('T')[0]);
         }
-        const ingresosReporte = ventasReporte.reduce((sum, v) => sum + (parseFloat(v.precio) || 0), 0);
+
+        const ingresosReporte = ventasReporte.reduce((sum, v) => sum + parseFloat(v.precio), 0);
         const ganancia = ingresosReporte - gastosReporte;
-        const roiRep = gastosReporte > 0 ? (ganancia / gastosReporte * 100) : (ingresosReporte > 0 ? Infinity : 0);
-        const reporteDiv = document.getElementById('reporte-detallado');
-        if (reporteDiv) {
-            reporteDiv.innerHTML = `
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-green-100 p-4 rounded-lg"><h4 class="font-semibold text-green-800">Ingresos</h4><p class="text-2xl font-bold text-green-600">${formatearPesos(ingresosReporte)}</p></div>
-                    <div class="bg-red-100 p-4 rounded-lg"><h4 class="font-semibold text-red-800">Gastos</h4><p class="text-2xl font-bold text-red-600">${formatearPesos(Math.round(gastosReporte))}</p></div>
-                    <div class="bg-blue-100 p-4 rounded-lg"><h4 class="font-semibold text-blue-800">Ganancia</h4><p class="text-2xl font-bold text-blue-600">${formatearPesos(ganancia)}</p></div>
-                    <div class="bg-purple-100 p-4 rounded-lg"><h4 class="font-semibold text-purple-800">ROI</h4><p class="text-2xl font-bold text-purple-600">${roiRep === Infinity ? '∞%' : `${roiRep.toFixed(1)}%`}</p></div>
-                </div>`;
-        }
+        const roi = gastosReporte > 0 ? (ganancia / gastosReporte * 100) : (ingresosReporte > 0 ? Infinity : 0);
+
+        document.getElementById('reporte-detallado').innerHTML = `<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"><div class="bg-green-100 p-4 rounded-lg"><h4 class="font-semibold text-green-800">Ingresos</h4><p class="text-2xl font-bold text-green-600">${formatearPesos(ingresosReporte)}</p></div><div class="bg-red-100 p-4 rounded-lg"><h4 class="font-semibold text-red-800">Gastos</h4><p class="text-2xl font-bold text-red-600">${formatearPesos(gastosReporte)}</p></div><div class="bg-blue-100 p-4 rounded-lg"><h4 class="font-semibold text-blue-800">Ganancia</h4><p class="text-2xl font-bold text-blue-600">${formatearPesos(ganancia)}</p></div><div class="bg-purple-100 p-4 rounded-lg"><h4 class="font-semibold text-purple-800">ROI</h4><p class="text-2xl font-bold text-purple-600">${roi === Infinity ? '∞%' : `${roi.toFixed(1)}%`}</p></div></div>`;
     }
 
-    function formatearPesos(cantidad) {
-        return '$' + (Number(cantidad) || 0).toLocaleString('es-CO');
-    }
-
-    function showTab(tabName) {
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-        const el = document.getElementById(tabName);
-        if (el) el.classList.add('active');
-        // Marcar botón activo
-        try {
-            event.target.closest('.tab-button').classList.add('active');
-        } catch {}
-        if (tabName === 'dashboard') actualizarDashboard();
-    }
-
-    function cargarSelectProductos() {
-        const select = document.getElementById('venta-producto');
-        if (!select) return;
-        select.innerHTML = '<option value="">Seleccionar producto</option>';
-        if (!Array.isArray(productos)) return;
-        productos.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '')).forEach(p => {
-            const opt = document.createElement('option');
-            opt.value = p.id;
-            const precioNum = parseFloat(p.precio) || 0;
-            opt.textContent = `${p.nombre || ''} - ${formatearPesos(precioNum)}`;
-            opt.dataset.precio = p.precio;
-            select.appendChild(opt);
+    // CORREGIDO: Filtro de fechas de ventas
+    function filtrarVentasPorRango() {
+        if (!currentDateRangeData.startDate) return ventas;
+        return ventas.filter(v => {
+            const fechaVenta = v.fecha.split('T')[0];
+            return fechaVenta >= currentDateRangeData.startDate && 
+                   fechaVenta <= currentDateRangeData.endDate;
         });
     }
-    function cargarSelectMetodosPago() {
-        const select = document.getElementById('venta-metodo-pago');
-        if (!select) return;
-        select.innerHTML = '<option value="">Seleccionar método</option>';
-        if (!Array.isArray(metodosPago)) return;
-        metodosPago.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '')).forEach(m => {
-            const opt = document.createElement('option');
-            opt.value = m.id;
-            opt.textContent = m.nombre || '';
-            select.appendChild(opt);
-        });
-    }
-    document.getElementById('venta-producto')?.addEventListener('change', function() {
-        const sel = this.options[this.selectedIndex];
-        if (sel && sel.dataset.precio) {
-            document.getElementById('venta-precio').value = parseFloat(sel.dataset.precio) || '';
-        }
-    });
 
-    // Cerrar dropdown al hacer click fuera
+    // Funciones de Rango de Fechas (sin cambios mayores)
+    function toggleDateRangeDropdown() { document.getElementById('date-range-dropdown').classList.toggle('active'); }
+    function closeCustomDateModal() { document.getElementById('custom-date-modal').classList.add('hidden'); }
+    function selectDateRange(range) {
+        currentDateRange = range;
+        if (range === 'custom') { document.getElementById('custom-date-modal').classList.remove('hidden'); } 
+        else { updateDateRangeData(range); actualizarDashboard(); }
+        toggleDateRangeDropdown();
+    }
+    function applyCustomDateRange() {
+        const startDate = document.getElementById('custom-start-date').value;
+        const endDate = document.getElementById('custom-end-date').value;
+        if (!startDate || !endDate || startDate > endDate) { alert('Selecciona un rango de fechas válido.'); return; }
+        currentDateRangeData = { startDate, endDate, label: `${startDate.split('-')[2]}/${startDate.split('-')[1]} - ${endDate.split('-')[2]}/${endDate.split('-')[1]}` };
+        document.getElementById('selected-range-text').textContent = currentDateRangeData.label;
+        closeCustomDateModal();
+        actualizarDashboard();
+    }
+    function updateDateRangeData(range) {
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        let startDate, endDate = new Date(today), label;
+        switch(range) {
+            case 'today': startDate = new Date(today); label = 'Hoy'; break;
+            case 'yesterday': startDate = new Date(today); startDate.setDate(today.getDate() - 1); endDate = new Date(startDate); label = 'Ayer'; break;
+            case 'last7days': startDate = new Date(today); startDate.setDate(today.getDate() - 6); label = 'Últimos 7 días'; break;
+            case 'thismonth': startDate = new Date(today.getFullYear(), today.getMonth(), 1); label = 'Este mes'; break;
+            default: startDate = new Date(today); startDate.setDate(today.getDate() - 6); label = 'Últimos 7 días'; break;
+        }
+        currentDateRangeData = { startDate: startDate.toISOString().split('T')[0], endDate: endDate.toISOString().split('T')[0], label };
+        document.getElementById('selected-range-text').textContent = label;
+    }
+    
     document.addEventListener('click', function(event) {
         const dropdown = document.getElementById('date-range-dropdown');
         const button = document.getElementById('date-range-button');
@@ -1259,8 +884,8 @@
         }
     });
 
-    // Iniciar carga
     document.addEventListener('DOMContentLoaded', cargarDatosDesdeAPI);
-    </script>
+</script>
+
 </body>
 </html>
